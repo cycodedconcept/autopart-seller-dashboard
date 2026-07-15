@@ -1,39 +1,18 @@
 
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { Search, Filter, FileText, ChevronLeft, ChevronRight, ArrowUpRight, ArrowDownRight, Eye, Download, MoreHorizontal, Wallet, CreditCard, TrendingDown } from 'lucide-react'
+import { Search, Filter, FileText, ChevronLeft, ChevronRight, ArrowUpRight, ArrowDownRight, Eye, Download, MoreHorizontal, Wallet, CreditCard, TrendingDown, Plus } from 'lucide-react'
 import { transactionStats } from '../utils/mockData'
 import StatCard from '../components/StatCard'
 
-const Sparkline = ({ color, data }) => {
-  const maxVal = Math.max(...data)
-  const width = 100
-  const height = 36
-  const padding = 4
-  const points = data.map((val, i) => ({
-    x: padding + (i / (data.length - 1)) * (width - padding * 2),
-    y: height - padding - (val / maxVal) * (height - padding * 2),
-  }))
-
-  const linePath = points.reduce((acc, p, i) => {
-    if (i === 0) return `M ${p.x},${p.y}`
-    const prev = points[i - 1]
-    const cpx1 = prev.x + (p.x - prev.x) * 0.4
-    const cpx2 = prev.x + (p.x - prev.x) * 0.6
-    return `${acc} C ${cpx1},${prev.y} ${cpx2},${p.y} ${p.x},${p.y}`
-  }, '')
-
-  const areaPath = `${linePath} L ${points[points.length - 1].x},${height} L ${points[0].x},${height} Z`
-
-  return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ flexShrink: 0, overflow: 'visible' }}>
-      <path d={areaPath} fill={color} fillOpacity="0.06" stroke="none" />
-      <path d={linePath} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
+const splitDate = (dateStr) => {
+  const m = dateStr.match(/^(.+?\d{4})\s+(.+)$/)
+  return m ? { date: m[1], time: m[2] } : { date: dateStr, time: '' }
 }
 
 export default function Transactions() {
+  const navigate = useNavigate()
   const transactions = useSelector(s => s.transactions.list)
   const [search, setSearch] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
@@ -70,16 +49,16 @@ export default function Transactions() {
     }
   }
 
-  const sparklineData = [
-    [20, 28, 32, 24, 36, 40, 32],
-    [12, 20, 16, 28, 24, 36, 32],
-    [8, 12, 16, 12, 20, 16, 12]
-  ]
-
   return (
     <div className="transactions-page">
-      <div className="page-header">
-        <h1 className="page-title">All Transactions List</h1>
+      <div className="products-page-header">
+        <div className="products-header-left">
+          <h1 className="products-page-title">All Transactions List</h1>
+        </div>
+        <button className="products-add-btn">
+          <FileText size={18} />
+          Export CSV
+        </button>
       </div>
 
       <div className="dashboard-stats-grid transactions-stats-grid">
@@ -89,7 +68,11 @@ export default function Transactions() {
           value={`₦${transactionStats.totalBalance.toLocaleString()}`}
           change={transactionStats.totalBalanceChange}
           iconColor="#10B981"
-          customMiddle={<Sparkline color="#10B981" data={sparklineData[0]} />}
+          lineColor="#10B981"
+          lightColor="#10B981"
+          valueSize="31px"
+          changeBelow
+          graph="/Graph1.png"
         />
         <StatCard
           icon={CreditCard}
@@ -97,7 +80,11 @@ export default function Transactions() {
           value={`+₦${transactionStats.totalCredits.toLocaleString()}`}
           change={transactionStats.totalCreditsChange}
           iconColor="#06B6D4"
-          customMiddle={<Sparkline color="#06B6D4" data={sparklineData[1]} />}
+          lineColor="#06B6D4"
+          lightColor="#06B6D4"
+          valueSize="31px"
+          changeBelow
+          graph="/Graph 2.png"
         />
         <StatCard
           icon={TrendingDown}
@@ -106,28 +93,27 @@ export default function Transactions() {
           change={transactionStats.totalDebitsChange}
           changeDown
           iconColor="#F59E0B"
-          customMiddle={<Sparkline color="#F59E0B" data={sparklineData[2]} />}
+          lineColor="#F59E0B"
+          lightColor="#F59E0B"
+          valueSize="31px"
+          changeBelow
+          graph="/Graph 3.png"
         />
       </div>
 
-      <div className="toolbar">
-        <div className="search-bar">
-          <Search size={16} />
-          <input 
-            type="text" 
-            placeholder="Search..." 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <span className="search-shortcut">⌘F</span>
-        </div>
-        <div className="toolbar-buttons">
-          <button className="filter-btn">
+      <div className="products-toolbar">
+        <div className="products-toolbar-top">
+          <div className="products-search">
+            <Search size={16} color="var(--text-muted)" />
+            <input
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <button className="products-filter-btn">
             <Filter size={16} />
-          </button>
-          <button className="export-btn">
-            <FileText size={16} />
-            <span>Export CSV</span>
+            Filter
           </button>
         </div>
       </div>
@@ -148,7 +134,7 @@ export default function Transactions() {
           </thead>
           <tbody>
             {currentTransactions.map((txn) => (
-              <tr key={txn.id}>
+              <tr key={txn.id} onClick={() => navigate(`/transactions/${txn.id}`)} style={{ cursor: 'pointer' }}>
                 <td>
                   <span className="transaction-id">{txn.id}</span>
                 </td>
@@ -162,14 +148,19 @@ export default function Transactions() {
                 <td className={txn.amount >= 0 ? 'amount-positive' : 'amount-negative'}>
                   {formatAmount(txn.amount)}
                 </td>
-                <td>{txn.date}</td>
+                <td>
+                  <div className="date-stacked">
+                    <span className="date-line">{splitDate(txn.date).date}</span>
+                    <span className="time-line">{splitDate(txn.date).time}</span>
+                  </div>
+                </td>
                 <td>{txn.paymentMethod}</td>
                 <td>
                   <span className={getStatusClass(txn.status)}>{txn.status}</span>
                 </td>
                 <td>
                   <div className="action-cell">
-                    <button className="action-btn">
+                    <button className="action-btn" onClick={(e) => { e.stopPropagation(); navigate(`/transactions/${txn.id}`) }}>
                       <Eye size={14} />
                     </button>
                     <button className="action-btn">
@@ -220,7 +211,7 @@ export default function Transactions() {
       {/* Mobile View */}
       <div className="transactions-mobile-list">
         {currentTransactions.map((txn) => (
-          <div key={txn.id} className="transaction-mobile-item">
+          <div key={txn.id} className="transaction-mobile-item" onClick={() => navigate(`/transactions/${txn.id}`)} style={{ cursor: 'pointer' }}>
             <div className="transaction-mobile-header">
               <div className="customer-cell">
                 <img src={txn.avatar} alt={txn.customerName} className="customer-avatar" />
@@ -236,7 +227,10 @@ export default function Transactions() {
             <div className="transaction-mobile-details">
               <div className="transaction-desc">{txn.description}</div>
               <div className="transaction-meta">
-                <span>{txn.date}</span>
+                <div className="date-stacked">
+                  <span className="date-line">{splitDate(txn.date).date}</span>
+                  <span className="time-line">{splitDate(txn.date).time}</span>
+                </div>
                 <span className={getStatusClass(txn.status)}>{txn.status}</span>
               </div>
             </div>

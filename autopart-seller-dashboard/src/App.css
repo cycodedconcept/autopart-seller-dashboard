@@ -266,7 +266,7 @@
   font-size: 0.75rem;
 
   &.up .an-kpi-pct {
-    color: #10B981;
+    color: #84CC16;
   }
 
   &.dn .an-kpi-pct {
@@ -313,12 +313,12 @@
   flex-direction: column;
   gap: 16px;
   background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 20px;
+  border: 1px solid #F0F0F0;
+  border-radius: 12px;
+  padding: 16px;
 
   @media (max-width: 640px) {
-    padding: 16px;
+    padding: 14px;
     gap: 12px;
   }
 }
@@ -631,7 +631,7 @@ table {
 
 .badge-green {
   background: #D1FAE5;
-  color: #059669;
+  color: #65A30D;
 }
 
 .badge-red {

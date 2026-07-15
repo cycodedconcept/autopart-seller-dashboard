@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
-import { ShoppingBag, Box, Clock, AlertCircle, Search, Filter, MoreHorizontal, ChevronLeft, ChevronRight, FileText, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { ShoppingBag, Box, Clock, AlertCircle, Search, Filter, ChevronLeft, ChevronRight, Download, Eye, Edit, Trash2, ArrowUp, ArrowDown } from 'lucide-react'
 import { orderStats } from '../../utils/mockData'
-import StatCard from '../../components/StatCard'
 
 export default function Orders() {
   const orders = useSelector(s => s.orders.list)
@@ -23,6 +22,20 @@ export default function Orders() {
     currentPage * itemsPerPage
   )
 
+  const handleExport = () => {
+    const headers = ['Order ID', 'Customer Name', 'Purchase Date', 'Item Name', 'Amount', 'Payment Method', 'Status']
+    const rows = filtered.map(order => [
+      order.id, order.customerName, order.purchaseDate, order.itemName,
+      order.amount, order.paymentMethod, order.status
+    ])
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = 'orders.csv'; a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const getStatusBadgeClass = (status) => {
     switch(status) {
       case 'Delivered': return 'status-badge status-delivered'
@@ -34,60 +47,85 @@ export default function Orders() {
     }
   }
 
-  const getChangeIcon = (change) => {
-    if (change.startsWith('+')) return <ArrowUpRight size={14} className="change-positive" />
-    return <ArrowDownRight size={14} className="change-negative" />
-  }
-
   return (
     <div className="orders-page">
       <div className="page-header">
         <h1 className="page-title">All Order List</h1>
+        <button className="export-btn" onClick={handleExport}>
+          <Download size={18} />
+          <span>Export Data</span>
+        </button>
       </div>
 
       <div className="dashboard-stats-grid">
-        <StatCard
-          icon={ShoppingBag}
-          label="Total Orders"
-          value={orderStats.totalOrders.toLocaleString()}
-          change={orderStats.totalChange}
-          iconColor="#3B82F6"
-          lineColor="#3B82F6"
-          lightColor="#DBEAFE"
-          progressWidth="45%"
-        />
-        <StatCard
-          icon={Box}
-          label="Parts Shipped"
-          value={orderStats.partsShipped.toLocaleString()}
-          change={orderStats.partsShippedChange}
-          iconColor="#22C55E"
-          lineColor="#22C55E"
-          lightColor="#DCFCE7"
-          progressWidth="62%"
-        />
-        <StatCard
-          icon={Clock}
-          label="Backordered"
-          value={orderStats.backordered.toLocaleString()}
-          change={orderStats.backorderedChange}
-          changeDown={orderStats.backorderedChange.startsWith('-')}
-          iconColor="#F59E0B"
-          lineColor="#F59E0B"
-          lightColor="#FEF3C7"
-          progressWidth="18%"
-        />
-        <StatCard
-          icon={AlertCircle}
-          label="Pending Orders"
-          value={orderStats.pendingOrders.toLocaleString()}
-          change={orderStats.pendingChange}
-          changeDown={orderStats.pendingChange.startsWith('-')}
-          iconColor="#EF4444"
-          lineColor="#EF4444"
-          lightColor="#FEE2E2"
-          progressWidth="25%"
-        />
+        <div className="card dashboard-stat-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', position: 'relative', paddingLeft: '34px', border: '1px solid #F0F0F0', borderRadius: '8px' }}>
+          <div style={{ position: 'absolute', left: '16px', top: '16px', width: '6px', height: '70px', background: '#3B82F6', borderRadius: '20px' }} />
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '16px', color: '#5F5F5F', fontWeight: 500, lineHeight: '20px' }}>Total Orders</span>
+            <div style={{ padding: '8px', background: 'rgba(59,130,246,0.1)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ShoppingBag size={24} color="#3B82F6" />
+            </div>
+          </div>
+          <div style={{ color: '#0E0E0C', fontSize: '32px', fontWeight: 700, lineHeight: '42px' }}>{orderStats.totalOrders.toLocaleString()}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ padding: '4px 6px', borderRadius: '4px', background: '#E9FAEE', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <ArrowUp size={12} color="#24D059" />
+              <span style={{ fontSize: '12px', color: '#24D059', fontWeight: 500 }}>{orderStats.totalChange}</span>
+            </div>
+            <span style={{ fontSize: '14px', color: '#5F5F5F', fontWeight: 400 }}>Since last week</span>
+          </div>
+        </div>
+        <div className="card dashboard-stat-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', position: 'relative', paddingLeft: '34px', border: '1px solid #F0F0F0', borderRadius: '8px' }}>
+          <div style={{ position: 'absolute', left: '16px', top: '16px', width: '6px', height: '70px', background: '#22C55E', borderRadius: '20px' }} />
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '16px', color: '#5F5F5F', fontWeight: 500, lineHeight: '20px' }}>Parts Shipped</span>
+            <div style={{ padding: '8px', background: 'rgba(34,197,94,0.1)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Box size={24} color="#22C55E" />
+            </div>
+          </div>
+          <div style={{ color: '#0E0E0C', fontSize: '32px', fontWeight: 700, lineHeight: '42px' }}>{orderStats.partsShipped.toLocaleString()}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ padding: '4px 6px', borderRadius: '4px', background: '#E9FAEE', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <ArrowUp size={12} color="#24D059" />
+              <span style={{ fontSize: '12px', color: '#24D059', fontWeight: 500 }}>{orderStats.partsShippedChange}</span>
+            </div>
+            <span style={{ fontSize: '14px', color: '#5F5F5F', fontWeight: 400 }}>Since last week</span>
+          </div>
+        </div>
+        <div className="card dashboard-stat-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', position: 'relative', paddingLeft: '34px', border: '1px solid #F0F0F0', borderRadius: '8px' }}>
+          <div style={{ position: 'absolute', left: '16px', top: '16px', width: '6px', height: '70px', background: '#F59E0B', borderRadius: '20px' }} />
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '16px', color: '#5F5F5F', fontWeight: 500, lineHeight: '20px' }}>Backordered</span>
+            <div style={{ padding: '8px', background: 'rgba(245,158,11,0.1)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Clock size={24} color="#F59E0B" />
+            </div>
+          </div>
+          <div style={{ color: '#0E0E0C', fontSize: '32px', fontWeight: 700, lineHeight: '42px' }}>{orderStats.backordered.toLocaleString()}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ padding: '4px 6px', borderRadius: '4px', background: '#FFEBEB', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <ArrowDown size={12} color="#FB3636" />
+              <span style={{ fontSize: '12px', color: '#FB3636', fontWeight: 500 }}>{orderStats.backorderedChange}</span>
+            </div>
+            <span style={{ fontSize: '14px', color: '#5F5F5F', fontWeight: 400 }}>Since last week</span>
+          </div>
+        </div>
+        <div className="card dashboard-stat-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', position: 'relative', paddingLeft: '34px', border: '1px solid #F0F0F0', borderRadius: '8px' }}>
+          <div style={{ position: 'absolute', left: '16px', top: '16px', width: '6px', height: '70px', background: '#EF4444', borderRadius: '20px' }} />
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '16px', color: '#5F5F5F', fontWeight: 500, lineHeight: '20px' }}>Pending Orders</span>
+            <div style={{ padding: '8px', background: 'rgba(239,68,68,0.1)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <AlertCircle size={24} color="#EF4444" />
+            </div>
+          </div>
+          <div style={{ color: '#0E0E0C', fontSize: '32px', fontWeight: 700, lineHeight: '42px' }}>{orderStats.pendingOrders.toLocaleString()}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ padding: '4px 6px', borderRadius: '4px', background: '#E9FAEE', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <ArrowUp size={12} color="#24D059" />
+              <span style={{ fontSize: '12px', color: '#24D059', fontWeight: 500 }}>{orderStats.pendingChange}</span>
+            </div>
+            <span style={{ fontSize: '14px', color: '#5F5F5F', fontWeight: 400 }}>Since last week</span>
+          </div>
+        </div>
       </div>
 
       <div className="toolbar">
@@ -103,10 +141,6 @@ export default function Orders() {
         <div className="toolbar-buttons">
           <button className="filter-btn">
             <Filter size={18} />
-          </button>
-          <button className="export-btn">
-            <FileText size={18} />
-            <span>Export Data</span>
           </button>
         </div>
       </div>
@@ -146,9 +180,14 @@ export default function Orders() {
                 </td>
                 <td>
                   <div className="action-cell">
-                    <Link to={`/orders/${order.id}`} className="view-link">View</Link>
-                    <button className="action-icon">
-                      <MoreHorizontal size={18} />
+                    <Link to={`/orders/${order.id}`} className="action-btn" style={{ textDecoration: 'none' }}>
+                      <Eye size={16} />
+                    </Link>
+                    <button className="action-btn">
+                      <Edit size={16} />
+                    </button>
+                    <button className="action-btn">
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 </td>

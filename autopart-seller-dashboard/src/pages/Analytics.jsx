@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+  LineChart, Line, Area, AreaChart, ComposedChart, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   PieChart, Pie, Cell,
   BarChart, Bar,
 } from 'recharts'
 import {
-  Package, Users, DollarSign, Target, ChevronDown,
+  Building2, Users, Banknote, TrendingUp, ChevronDown, Calendar,
   Eye, Pencil, Trash2,
 } from 'lucide-react'
 import StatCard from '../components/StatCard'
@@ -13,33 +13,116 @@ import {
   salesAnalyticData, salesSummaryData, totalRevenueBarData, latestTransactions,
 } from '../utils/mockData'
 
-function FilterSelect({ value, onChange, options }) {
+// ── Figma-style filter button ──────────────────────────────────────────────
+function ChartFilter({ value, onChange, options }) {
+  const [open, setOpen] = useState(false)
   return (
-    <div className="an-filter-wrap">
-      <select
-        className="an-filter-select"
-        value={value}
-        onChange={e => onChange(e.target.value)}
+    <div style={{ position: 'relative' }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '4px',
+          padding: '8px 12px',
+          background: '#FFFFFF',
+          border: '1px solid #F0F0F0',
+          boxShadow: '0px 1px 2px rgba(82,88,102,0.06)',
+          borderRadius: '6px',
+          cursor: 'pointer',
+          fontFamily: 'inherit',
+        }}
       >
-        {options.map(o => <option key={o}>{o}</option>)}
-      </select>
-      <ChevronDown size={12} className="an-filter-arrow" />
+        <Calendar size={14} color="#5F5F5F" />
+        <span style={{ fontSize: '12px', fontWeight: 500, color: '#5F5F5F' }}>{value}</span>
+        <ChevronDown size={14} color="#5F5F5F" />
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', right: 0,
+          background: '#fff', border: '1px solid #F0F0F0',
+          borderRadius: '6px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+          zIndex: 50, minWidth: '110px', overflow: 'hidden',
+        }}>
+          {options.map(o => (
+            <button
+              key={o}
+              onClick={() => { onChange(o); setOpen(false) }}
+              style={{
+                display: 'block', width: '100%', padding: '8px 14px',
+                textAlign: 'left', background: o === value ? '#FFF4EE' : 'transparent',
+                border: 'none', cursor: 'pointer', fontSize: '12px',
+                fontWeight: o === value ? 600 : 400,
+                color: o === value ? '#FF7101' : '#5F5F5F',
+                fontFamily: 'inherit',
+              }}
+            >
+              {o}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
 
-function LineTooltip({ active, payload, label }) {
+// ── Line chart tooltip — Figma floating card style ─────────────────────────
+function LineTooltip({ active, payload }) {
   if (!active || !payload?.length) return null
+  // Show Income on top, Expenses below — filter out the bg bar entry
+  const filtered = payload.filter(p => p.name === 'Income' || p.name === 'Expenses')
   return (
-    <div className="an-tooltip">
-      <div className="an-tooltip-label">{label}</div>
-      {payload.map(p => (
-        <div key={p.dataKey} className="an-tooltip-row">
-          <span className="an-tooltip-dot" style={{ background: p.color }} />
-          <span>{p.name}: ₦{p.value.toLocaleString()}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', pointerEvents: 'none' }}>
+      {filtered.map(p => (
+        <div
+          key={p.dataKey}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '6px',
+            background: '#FFFFFF',
+            padding: '8px 12px',
+            borderRadius: '4px',
+            boxShadow: '0px 0px 16px rgba(0,0,0,0.06), 0px 14px 46px rgba(0,0,0,0.12)',
+            fontSize: '12px', color: '#0E0E0C', whiteSpace: 'nowrap',
+          }}
+        >
+          <div style={{
+            width: '10px', height: '10px', borderRadius: '50%',
+            background: '#FFFFFF', boxShadow: '0px 1px 4px rgba(0,0,0,0.12)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: p.color }} />
+          </div>
+          <span>{p.name}: {Math.round(p.value / 1000)}K</span>
         </div>
       ))}
     </div>
+  )
+}
+
+// ── Background column bars custom shape ───────────────────────────────────
+function BgBars(props) {
+  const { x, y, width, height } = props
+  const bw = Math.max(4, width * 0.18)
+  const gap = (width - bw * 3) / 4
+  const bars = [
+    { h: height * 0.58, x: gap },
+    { h: height * 0.26, x: gap * 2 + bw },
+    { h: height * 0.10, x: gap * 3 + bw * 2 },
+  ]
+  return (
+    <g>
+      {bars.map((b, i) => (
+        <rect
+          key={i}
+          x={x + b.x}
+          y={y + height - b.h}
+          width={bw}
+          height={b.h}
+          fill="#F0F0F0"
+          opacity={0.6}
+          rx={2}
+        />
+      ))}
+    </g>
   )
 }
 
@@ -150,7 +233,7 @@ function NigeriaMap() {
   )
 }
 
-const DONUT_COLORS = ['#1FAA59', '#EF4444', '#F5A623', '#3B82F6']
+const DONUT_COLORS = ['#B7D57B', '#FB3636', '#24D059', '#F5A405']
 
 const STATUS_CLS = {
   Completed: 'badge-green',
@@ -168,130 +251,133 @@ export default function Analytics() {
     <div className="analytics-page">
       <div className="dashboard-stats-grid">
         <StatCard
-          icon={Package}
+          icon={Building2}
           label="No. of Products"
           value="5,536"
           change="+15.5%"
-          iconColor="#FF7101"
-          lineColor="#FF7101"
-          lightColor="#FFD3B0"
-          progressWidth="65%"
+          gradient="linear-gradient(178.98deg, #EEFBD5 -100.51%, #FFFFFF 57.23%)"
+          variant="analytics"
         />
         <StatCard
           icon={Users}
-          label="Reg. Agents"
+          label="Regi. Agents"
           value="746"
           change="-02.8%"
           changeDown
-          iconColor="#3B82F6"
-          lineColor="#3B82F6"
-          lightColor="#DBEAFE"
-          progressWidth="20%"
+          gradient="linear-gradient(178.98deg, #D3F6DE -100.51%, #FFFFFF 57.23%)"
+          variant="analytics"
         />
         <StatCard
-          icon={DollarSign}
+          icon={Banknote}
           label="Total Revenue"
           value="₦2,748"
           change="+21.6%"
-          iconColor="#10B981"
-          lineColor="#10B981"
-          lightColor="#DCFCE7"
-          progressWidth="55%"
+          gradient="linear-gradient(178.98deg, #FED7D7 -100.51%, #FFFFFF 57.23%)"
+          variant="analytics"
         />
         <StatCard
-          icon={Target}
+          icon={TrendingUp}
           label="Target This Month"
           value="435"
           change="-09.4%"
           changeDown
-          iconColor="#F59E0B"
-          lineColor="#F59E0B"
-          lightColor="#FEF3C7"
-          progressWidth="15%"
+          gradient="linear-gradient(178.98deg, #D2E6FE -100.51%, #FFFFFF 57.23%)"
+          variant="analytics"
         />
       </div>
 
       <div className="an-row-2">
-        <div className="card an-chart-card">
+        <div className="an-chart-card">
           <div className="an-chart-header">
-            <div className="section-title">Sales Analytic</div>
-            <FilterSelect
+            <div style={{ fontSize: '18px', fontWeight: 500, color: '#0E0E0C' }}>Sales Analytic</div>
+            <ChartFilter
               value={analyticFilter}
               onChange={setAnalyticFilter}
               options={['Monthly', 'Yearly', 'Weekly']}
             />
           </div>
 
-          <ResponsiveContainer width="100%" height={210}>
-            <LineChart data={salesAnalyticData} margin={{ top: 8, right: 10, left: -10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false} />
+          <ResponsiveContainer width="100%" height={252}>
+            <ComposedChart data={salesAnalyticData} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
+              <defs>
+                <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#F5A405" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="#F5A405" stopOpacity={0.02} />
+                </linearGradient>
+                <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#B7D57B" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="#B7D57B" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
               <XAxis
                 dataKey="month"
-                tick={{ fill: '#9CA3AF', fontSize: 10 }}
+                tick={{ fill: '#5F5F5F', fontSize: 11, opacity: 0.6 }}
                 axisLine={false}
                 tickLine={false}
+                tickMargin={8}
               />
               <YAxis
-                tick={{ fill: '#9CA3AF', fontSize: 10 }}
+                tick={{ fill: '#5F5F5F', fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
                 domain={[10000, 20000]}
                 ticks={[10000, 12000, 14000, 16000, 18000, 20000]}
                 tickFormatter={v => `${v / 1000}K`}
+                width={32}
               />
-              <Tooltip content={<LineTooltip />} />
-              <Line
+              <Tooltip
+                content={<LineTooltip />}
+                cursor={{ stroke: '#0E0E0C', strokeWidth: 1, strokeDasharray: '4 4' }}
+              />
+              {/* Decorative background bars per month column */}
+              <Bar dataKey="income" shape={<BgBars />} isAnimationActive={false} legendType="none" tooltipType="none" />
+              <Area
                 type="monotone"
                 dataKey="income"
                 name="Income"
-                stroke="#FF7101"
-                strokeWidth={2.5}
+                stroke="#F5A405"
+                strokeWidth={2}
+                fill="url(#incomeGrad)"
                 dot={false}
-                activeDot={{ r: 5, fill: '#FF7101', strokeWidth: 0 }}
+                activeDot={{ r: 5, fill: '#F5A405', stroke: '#fff', strokeWidth: 2 }}
               />
-              <Line
+              <Area
                 type="monotone"
                 dataKey="expense"
-                name="Expense"
-                stroke="#1FAA59"
-                strokeWidth={2.5}
+                name="Expenses"
+                stroke="#B7D57B"
+                strokeWidth={2}
+                fill="url(#expenseGrad)"
                 dot={false}
-                activeDot={{ r: 5, fill: '#1FAA59', strokeWidth: 0 }}
+                activeDot={{ r: 5, fill: '#B7D57B', stroke: '#fff', strokeWidth: 2 }}
               />
-            </LineChart>
+            </ComposedChart>
           </ResponsiveContainer>
-
-          <div className="an-line-legend">
-            <span className="an-legend-dot" style={{ background: '#FF7101' }} />
-            <span>Income 19K</span>
-            <span className="an-legend-dot" style={{ background: '#1FAA59', marginLeft: 12 }} />
-            <span>Expense 17K</span>
-          </div>
         </div>
 
-        <div className="card an-chart-card">
+        <div className="an-chart-card">
           <div className="an-chart-header">
-            <div className="section-title">Sales Summary</div>
-            <FilterSelect
+            <div style={{ fontSize: '18px', fontWeight: 500, color: '#0E0E0C' }}>Sales Summary</div>
+            <ChartFilter
               value={summaryFilter}
               onChange={setSummaryFilter}
               options={['Monthly', 'Yearly', 'Weekly']}
             />
           </div>
 
-          <div style={{ position: 'relative', height: 180 }}>
-            <ResponsiveContainer width="100%" height="100%">
+          <div style={{ position: 'relative', height: 208, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <ResponsiveContainer width={208} height={208}>
               <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                 <Pie
                   data={salesSummaryData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={52}
-                  outerRadius={78}
+                  innerRadius={58}
+                  outerRadius={100}
                   startAngle={90}
                   endAngle={-270}
                   dataKey="value"
-                  strokeWidth={3}
+                  strokeWidth={6}
                   stroke="#fff"
                 >
                   {salesSummaryData.map((_, i) => (
@@ -306,16 +392,18 @@ export default function Analytics() {
             </div>
           </div>
 
-          <div className="an-donut-legend">
+          {/* Legend — 2×2 grid, inline row per item */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '12px 8px',
+            marginTop: '16px',
+          }}>
             {salesSummaryData.map((d, i) => (
-              <div key={d.name} className="an-donut-legend-item">
-                <span className="an-legend-dot" style={{ background: DONUT_COLORS[i] }} />
-                <div>
-                  <div className="an-legend-name">{d.name}</div>
-                  <div className="an-legend-val" style={{ color: DONUT_COLORS[i] }}>
-                    ₦{d.value.toLocaleString()}
-                  </div>
-                </div>
+              <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', borderRadius: '100px' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: DONUT_COLORS[i], flexShrink: 0 }} />
+                <span style={{ fontSize: '12px', fontWeight: 400, color: '#5F5F5F' }}>{d.name}</span>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#0E0E0C' }}>₦{d.value.toLocaleString()}</span>
               </div>
             ))}
           </div>
@@ -323,10 +411,10 @@ export default function Analytics() {
       </div>
 
       <div className="an-row-3">
-        <div className="card an-chart-card">
+        <div className="an-chart-card">
           <div className="an-chart-header">
-            <div className="section-title">Most Sales Location</div>
-            <FilterSelect
+            <div style={{ fontSize: '18px', fontWeight: 500, color: '#0E0E0C' }}>Most Sales Location</div>
+            <ChartFilter
               value={mapFilter}
               onChange={setMapFilter}
               options={['Nigeria', 'Global', 'Asia']}
@@ -335,10 +423,10 @@ export default function Analytics() {
           <NigeriaMap />
         </div>
 
-        <div className="card an-chart-card">
+        <div className="an-chart-card">
           <div className="an-chart-header">
-            <div className="section-title">Total Revenue</div>
-            <FilterSelect
+            <div style={{ fontSize: '18px', fontWeight: 500, color: '#0E0E0C' }}>Total Revenue</div>
+            <ChartFilter
               value={revFilter}
               onChange={setRevFilter}
               options={['Monthly', 'Yearly', 'Weekly']}
@@ -385,8 +473,8 @@ export default function Analytics() {
 
       <div className="card">
         <div className="an-chart-header">
-          <div className="section-title">Latest Transaction</div>
-          <FilterSelect value="Monthly" onChange={() => {}} options={['Monthly', 'Yearly']} />
+          <div className="section-title" style={{ fontSize: '18px', fontWeight: 500, color: '#0E0E0C' }}>Latest Transaction</div>
+          <ChartFilter value="Monthly" onChange={() => {}} options={['Monthly', 'Yearly']} />
         </div>
 
         <div className="table-wrap">

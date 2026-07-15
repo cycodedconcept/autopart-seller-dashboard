@@ -139,12 +139,19 @@ export default function Layout() {
               <input placeholder="Search anything" />
               <Filter size={16} className="search-filter-icon" />
             </div>
+            <button className="topbar-icon-btn topbar-search-btn">
+              <Search size={20} />
+            </button>
             <button className="topbar-icon-btn">
               <Calendar size={20} />
             </button>
             <button className="topbar-icon-btn">
               <Bell size={20} />
             </button>
+            <div className="topbar-user">
+              <img src={currentUser.avatar} alt={currentUser.name} className="topbar-user-avatar" />
+              <ChevronDown size={16} className="topbar-user-chevron" />
+            </div>
           </div>
         </header>
 

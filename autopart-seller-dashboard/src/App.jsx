@@ -15,6 +15,7 @@ import Customers from './pages/customers/Customers'
 import AddCustomer from './pages/customers/AddCustomer'
 import CustomerDetail from './pages/customers/CustomerDetail'
 import Transactions from './pages/Transactions'
+import TransactionDetail from './pages/transactions/TransactionDetail'
 import Login from './pages/auth/Login'
 import SignUp from './pages/auth/SignUp'
 import ForgotPassword from './pages/auth/ForgotPassword'
@@ -51,6 +52,7 @@ function App() {
           <Route path="/customers/:refNumber" element={<CustomerDetail />} />
 
           <Route path="/transactions" element={<Transactions />} />
+          <Route path="/transactions/:id" element={<TransactionDetail />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />

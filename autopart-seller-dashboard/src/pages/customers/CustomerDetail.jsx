@@ -67,9 +67,11 @@ export default function CustomerDetail() {
 
   return (
     <div className="customer-detail-page">
-      <button className="customer-back-btn" onClick={() => navigate(-1)}>
-        <ArrowLeft size={18} /> Back to Customers
-      </button>
+      <div className="customer-detail-header-card">
+        <button className="customer-back-btn" onClick={() => navigate(-1)}>
+          <ArrowLeft size={18} /> Back to Customers
+        </button>
+      </div>
 
       <div className="customer-detail-layout">
         <div className="customer-detail-left">
@@ -81,7 +83,7 @@ export default function CustomerDetail() {
               <div className="customer-profile-info">
                 <h2 className="customer-profile-name">{customer.name}</h2>
                 <div className="customer-profile-meta">
-                  <span className={`customer-status-badge ${customer.status === 'Active' ? 'status-active' : 'status-inactive'}`}>
+                  <span className={`customer-status-badge ${customer.status === 'Active' ? 'active' : 'inactive'}`}>
                     {customer.status}
                   </span>
                   <span className="customer-ref-label">{customer.refNumber}</span>
