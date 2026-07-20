@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
-  Home, Box, Users, ShoppingCart, BarChart3,
+  Home, Box, ShoppingCart, BarChart3,
   ArrowUpDown, Inbox, Settings, HelpCircle, Menu,
   ChevronDown, Search, Calendar, Filter, Sun,
   PanelLeftClose, Bell
@@ -13,7 +13,6 @@ import autoLogo from '../assets/Logo.png'
 const menuItems = [
   { icon: Home, label: 'Dashboard', to: '/dashboard' },
   { icon: Box, label: 'Products', to: '/products' },
-  { icon: Users, label: 'Customers', to: '/customers' },
   { icon: ShoppingCart, label: 'Orders', to: '/orders' },
   { icon: BarChart3, label: 'Analytics', to: '/analytics' },
   { icon: ArrowUpDown, label: 'Transactions', to: '/transactions' },
@@ -28,7 +27,6 @@ const othersItems = [
 const bottomNavItems = [
   { icon: Home, label: 'Home', to: '/dashboard' },
   { icon: ShoppingCart, label: 'Orders', to: '/orders' },
-  { icon: Users, label: 'Customers', to: '/customers' },
   { icon: Box, label: 'Products', to: '/products' },
   { icon: Settings, label: 'Settings', to: '/account-settings' },
 ]

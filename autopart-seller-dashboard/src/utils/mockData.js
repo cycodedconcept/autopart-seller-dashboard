@@ -764,8 +764,8 @@ export const salesAnalyticData = [
 
 export const salesSummaryData = [
   { name: 'Sold',    value: 36423 },
-  { name: 'Expense', value: 2512  },
-  { name: 'Rented',  value: 12221 },
+  { name: 'Expense', value: 2312  },
+  { name: 'Rented',  value: 12321 },
   { name: 'Income',  value: 10134 },
 ];
 
@@ -773,7 +773,7 @@ export const totalRevenueBarData = [
   { month: 'Mar 11', a: 8200,  b: 5100,  c: 2800             },
   { month: 'Apr 11', a: 10500, b: 7200,  c: 4500             },
   { month: 'May 11', a: 9100,  b: 5600,  c: 3200             },
-  { month: 'Jun 11', a: 20000, b: 15000, c: 8646, active: true },
+  { month: 'Jun 11', a: 20000, b: 15000, c: 8546, active: true, date: 'Jun 11, 2025' },
   { month: 'Jul 11', a: 12100, b: 8300,  c: 5100             },
   { month: 'Aug 11', a: 11200, b: 7100,  c: 4200             },
   { month: 'Sep 11', a: 9300,  b: 6100,  c: 3200             },
@@ -871,4 +871,10 @@ export const initialTransactions = [
   },
 ];
 
-export const latestTransactions = initialTransactions;
+export const latestTransactions = [
+  { id: 'TXN-64547', customerName: 'Emeka Okafor', avatar: 'https://picsum.photos/80/80?random=501', description: 'Order #ORD-7841', amount: 63758, date: 'Mar 10, 2025', paymentMethod: 'Mastercard', location: 'Lagos', status: 'Completed' },
+  { id: 'TXN-64548', customerName: 'Ngozi Adeyemi', avatar: 'https://picsum.photos/80/80?random=502', description: 'Order #ORD-7842', amount: 53937, date: 'Mar 11, 2025', paymentMethod: 'Paystack', location: 'Abuja', status: 'Cancel' },
+  { id: 'TXN-64549', customerName: 'Yusuf Bello', avatar: 'https://picsum.photos/80/80?random=503', description: 'Order #ORD-7843', amount: 21748, date: 'Mar 13, 2025', paymentMethod: 'Mastercard', location: 'Port Harcourt', status: 'Pending' },
+  { id: 'TXN-64550', customerName: 'Chioma Obi', avatar: 'https://picsum.photos/80/80?random=504', description: 'Order #ORD-7839', amount: 42150, date: 'Mar 14, 2025', paymentMethod: 'Visa', location: 'Ibadan', status: 'Completed' },
+  { id: 'TXN-64551', customerName: 'Aminu Suleiman', avatar: 'https://picsum.photos/80/80?random=505', description: 'Order #ORD-7838', amount: 18800, date: 'Mar 15, 2025', paymentMethod: 'Bank Transfer', location: 'Kano', status: 'Completed' },
+];

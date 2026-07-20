@@ -9,7 +9,7 @@
   --bg: #F6F6F6;
   --bg-card: #FFFFFF;
   --bg-hover: #F3F4F6;
-  --bg-secondary: #FFFFFF;
+  --bg-secondary: #F7F7F8;
   --border: #ECECEC;
   --text-primary: #0E0E0C;
   --text-secondary: #5F5F5F;
@@ -512,19 +512,64 @@ tbody tr:last-child { border-bottom: none; }
   }
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   ANALYTICS PAGE
-═══════════════════════════════════════════════════════════════════════════ */
+/* ── Analytics page table: white thead to match Figma ── */
+.analytics-page .table-wrap thead th {
+  background: #FAFAFA;
+  border-bottom: 1px solid #F0F0F0;
+  color: #9CA3AF;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  padding: 12px 16px;
+}
+
+.analytics-page .table-wrap tbody td {
+  padding: 14px 20px;
+  border-bottom: 1px solid #F7F7F7;
+  font-size: 0.85rem;
+}
+
+.analytics-page .table-wrap tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.analytics-page .table-wrap tbody tr:hover {
+  background: #FAFAFA;
+}
+
+/* ── Fix card border-radius to match chart cards ── */
+.analytics-page .card {
+  background: #FFFFFF;
+  border-radius: 22px;
+  border: 1px solid #F2F2F2;
+  box-shadow: 0 2px 10px rgba(15,23,42,.04);
+  padding: 24px;
+}
+
+/* ── Chart cards (Sales Analytic, Sales Summary, Map, Revenue) ── */
+.an-chart-card {
+  display: flex;
+  flex-direction: column;
+  background: #FFFFFF;
+  border: 1px solid #F2F2F2;
+  border-radius: 22px;
+  padding: 24px;
+  box-shadow: 0 2px 10px rgba(15,23,42,.04);
+  overflow: hidden;
+}
+
+/* ── Row 3: equal columns to match Figma ── */
 .analytics-page {   display: flex;
   flex-direction: column;
   gap: 28px; }
 
 /* Layout rows */
 .an-row-2 { display: grid; grid-template-columns: 1.55fr 1fr; gap: 20px; }
-.an-row-3 { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; }
+.an-row-3 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
 /* Chart card header */
-.an-chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.an-chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding-top: 2px; }
 
 /* Filter dropdown */
 .an-filter-wrap { position: relative; display: inline-flex; align-items: center; }
@@ -2296,6 +2341,7 @@ tbody tr:last-child { border-bottom: none; }
   transition: all 0.2s;
   font-family: inherit;
   border: none;
+  white-space: nowrap;
 }
 
 .add-customer-cancel-btn {
@@ -2385,7 +2431,12 @@ tbody tr:last-child { border-bottom: none; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+}
+
+/* Title inside card-header (left panel) — no own bottom margin */
+.card-header .add-customer-card-title {
+  margin: 0;
 }
 
 .add-customer-card-title {
@@ -2459,16 +2510,17 @@ tbody tr:last-child { border-bottom: none; }
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 14px 16px;
-  border-radius: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--bg-card);
   color: var(--text-secondary);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
   font-family: inherit;
+  white-space: nowrap;
 }
 
 .contact-link-btn:hover {
@@ -2482,12 +2534,10 @@ tbody tr:last-child { border-bottom: none; }
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: #f8f8f8;
-  margin-bottom: 10px;
-  font-size: 0.85rem;
+  padding: 6px 0;
+  font-size: 0.82rem;
   color: var(--text-secondary);
+  margin-bottom: 8px;
 }
 
 .customer-social-links {
@@ -2506,12 +2556,12 @@ tbody tr:last-child { border-bottom: none; }
 
 .social-buttons {
   display: flex;
-  gap: 10px;
+  gap: 6px;
 }
 
 .social-btn {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 8px;
   border: 1px solid #eee;
   background: var(--bg-card);
@@ -2521,6 +2571,7 @@ tbody tr:last-child { border-bottom: none; }
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .social-btn:hover {
@@ -2542,18 +2593,21 @@ tbody tr:last-child { border-bottom: none; }
   border-top: 1px solid #eee;
 }
 
+/* Add Customer button — equal flex with Cancel, orange filled */
 .profile-save-btn {
   flex: 1;
-  padding: 16px 20px;
-  border-radius: 14px;
+  padding: 12px 8px;
+  border-radius: 10px;
   border: none;
   background: var(--brand);
   color: #fff;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   font-family: inherit;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .profile-save-btn:hover {
@@ -2561,18 +2615,21 @@ tbody tr:last-child { border-bottom: none; }
   transform: translateY(-1px);
 }
 
+/* Cancel — equal flex with Add Customer, outline style */
 .profile-cancel-btn {
   flex: 1;
-  padding: 16px 20px;
-  border-radius: 14px;
+  padding: 12px 8px;
+  border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--bg-card);
   color: var(--text-secondary);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   font-family: inherit;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .profile-cancel-btn:hover {
@@ -2718,10 +2775,6 @@ tbody tr:last-child { border-bottom: none; }
 }
 
 .upload-icon-wrapper {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: rgba(255, 107, 0, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2735,7 +2788,7 @@ tbody tr:last-child { border-bottom: none; }
 }
 
 .upload-browse {
-  color: var(--brand);
+  color: #22C55E;
   font-weight: 600;
 }
 
@@ -2753,21 +2806,27 @@ tbody tr:last-child { border-bottom: none; }
 }
 
 @media (max-width: 768px) {
+  /* Header: stack title/breadcrumb, then Save full-width, then Cancel full-width */
   .add-customer-header-top {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+    align-items: stretch;
+    gap: 10px;
   }
 
   .add-customer-header-actions {
     width: 100%;
+    flex-direction: column;
+    gap: 8px;
   }
 
   .add-customer-cancel-btn,
   .add-customer-save-btn {
-    flex: 1;
+    width: 100%;
+    text-align: center;
+    justify-content: center;
   }
 
+  /* Form fields go single column */
   .add-customer-row {
     grid-template-columns: 1fr;
   }
@@ -2782,12 +2841,9 @@ tbody tr:last-child { border-bottom: none; }
     grid-template-columns: 1fr;
   }
 
+  /* Keep Call Customer + Message side by side on mobile — matches Figma */
   .customer-contact-links {
-    flex-direction: column;
-  }
-  
-  .profile-actions {
-    flex-direction: column;
+    flex-direction: row;
   }
 }
 

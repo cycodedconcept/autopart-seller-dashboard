@@ -79,13 +79,13 @@ export default function StatCard({
       <div style={{
         display: 'flex',
         flexDirection: 'column',
-        padding: '16px',
+        padding: '20px',
         gap: '10px',
         minHeight: '145px',
-        borderRadius: '12px',
+        borderRadius: '22px',
         background: gradient || '#FFFFFF',
-        border: '1px solid #F0F0F0',
-        boxShadow: '0px 2px 8px rgba(0,0,0,0.04)',
+        border: '1px solid #F2F2F2',
+        boxShadow: '0 2px 10px rgba(15,23,42,.035)',
         width: '100%',
         minWidth: 0,
         boxSizing: 'border-box',
@@ -98,15 +98,15 @@ export default function StatCard({
             borderRadius: '80px',
             background: '#FFFFFF',
             border: '1px solid #F0F0F0',
-            boxShadow: '0px 2px 19px rgba(0,0,0,0.08)',
+            boxShadow: '0px 2px 8px rgba(0,0,0,0.03)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
           }}>
-            <Icon size={20} color="#5F5F5F" />
+            <Icon size={18} color="#5F5F5F" />
           </div>
-          <span style={{ fontSize: titleSize || '16px', fontWeight: 500, color: '#5F5F5F', lineHeight: '20px' }}>{label}</span>
+          <span style={{ fontSize: titleSize || '14px', fontWeight: 500, color: '#5F5F5F', lineHeight: '18px' }}>{label}</span>
         </div>
 
         {/* Divider */}
@@ -114,7 +114,7 @@ export default function StatCard({
 
         {/* Value row — value left, change stacked right */}
         <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ color: '#0E0E0C', fontSize: '24px', fontWeight: 700, lineHeight: '34px' }}>
+          <div style={{ color: '#0E0E0C', fontSize: '22px', fontWeight: 600, lineHeight: '30px' }}>
             {value}
           </div>
           {customChange || (showChange && change && (

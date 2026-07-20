@@ -1,10 +1,43 @@
 import { useState, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Upload, Phone, Mail, MapPin, MessageSquare, X, User, Package, DollarSign, Hash, Globe, ChevronDown } from 'lucide-react'
+import { useDispatch } from 'react-redux'
+import { addCustomer } from '../../features/customerSlice'
+import {
+  Phone, PhoneCall, Mail, MapPin, MessageSquare, X,
+  User, Building2, CircleDollarSign, ShieldCheck, ChevronDown
+} from 'lucide-react'
 import { FaWhatsapp, FaFacebook, FaLinkedin, FaInstagram, FaXTwitter } from 'react-icons/fa6'
+
+// Colourful landscape upload illustration matching Figma
+function UploadIllustration() {
+  return (
+    <svg width="80" height="72" viewBox="0 0 80 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Background card */}
+      <rect x="4" y="8" width="64" height="52" rx="8" fill="#E8E8FF" />
+      {/* Sky */}
+      <rect x="4" y="8" width="64" height="30" rx="8" fill="#C7D2FF" />
+      {/* Sun */}
+      <circle cx="52" cy="22" r="7" fill="#FFD166" />
+      {/* Mountains back */}
+      <path d="M4 40 L20 20 L36 40 Z" fill="#9B8FD4" />
+      {/* Mountains front */}
+      <path d="M28 42 L44 24 L60 42 L68 42 L68 56 Q68 60 64 60 L8 60 Q4 60 4 56 L4 42 Z" fill="#7C6FC4" />
+      {/* Ground */}
+      <path d="M4 50 Q20 44 40 50 Q56 56 68 50 L68 60 Q68 60 64 60 L8 60 Q4 60 4 56 Z" fill="#A8D5A2" />
+      {/* Upload badge circle */}
+      <circle cx="58" cy="54" r="14" fill="white" />
+      <circle cx="58" cy="54" r="13" fill="#FF7101" />
+      {/* Upload arrow */}
+      <path d="M58 61 L58 49" stroke="white" strokeWidth="2.2" strokeLinecap="round" />
+      <path d="M53 54 L58 49 L63 54" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
 
 export default function AddCustomer() {
   const navigate = useNavigate()
+  const dispatch = useDispatch()
+
   const [form, setForm] = useState({
     name: 'Chukwuemeka Okafor',
     email: '',
@@ -16,9 +49,6 @@ export default function AddCustomer() {
     city: '',
     zipCode: '',
     country: '',
-    twitter: '',
-    instagram: '',
-    linkedin: ''
   })
   const [avatar, setAvatar] = useState(null)
   const [photos, setPhotos] = useState([])
@@ -51,17 +81,35 @@ export default function AddCustomer() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    dispatch(addCustomer({
+      name: form.name,
+      email: form.email,
+      phone: form.phone,
+      productsNumber: form.productsNumber,
+      ownProducts: form.ownProducts,
+      investProperty: form.investProperty,
+      address: form.address,
+      city: form.city,
+      zipCode: form.zipCode,
+      country: form.country,
+      avatar: avatar || 'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&q=80&w=200',
+      partCategory: 'General',
+      deliveryAddress: form.city ? `${form.city}, ${form.country}` : '',
+      lastDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      status: 'Active',
+    }))
     navigate('/customers')
   }
 
   return (
     <div className="add-customer-page">
+      {/* Header — Save before Cancel to match Figma */}
       <div className="add-customer-header-card">
         <div className="add-customer-header-top">
           <h1 className="add-customer-title">Add New Customer</h1>
           <div className="add-customer-header-actions">
-            <button type="button" className="add-customer-cancel-btn" onClick={() => navigate('/customers')}>Cancel</button>
             <button type="submit" form="add-customer-form" className="add-customer-save-btn">Save</button>
+            <button type="button" className="add-customer-cancel-btn" onClick={() => navigate('/customers')}>Cancel</button>
           </div>
         </div>
         <div className="add-customer-breadcrumb">
@@ -73,6 +121,8 @@ export default function AddCustomer() {
 
       <form id="add-customer-form" onSubmit={handleSubmit} className="add-customer-form">
         <div className="add-customer-layout">
+
+          {/* ── Left: Customer Profile card ── */}
           <div className="add-customer-left">
             <div className="add-customer-card">
               <div className="card-header">
@@ -81,7 +131,7 @@ export default function AddCustomer() {
                   <X size={18} />
                 </button>
               </div>
-              
+
               <div className="customer-profile-preview">
                 <div className="customer-avatar-preview" onClick={() => avatarInputRef.current?.click()} style={{ cursor: 'pointer' }}>
                   <img src={avatar || 'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&q=80&w=200'} alt="Customer" />
@@ -104,17 +154,17 @@ export default function AddCustomer() {
 
               <div className="customer-email-preview">
                 <Mail size={14} />
-                <span>{form.email || 'customer@email.com'}</span>
+                <span>{form.email || 'chuk.okafor@gmail.com'}</span>
               </div>
 
               <div className="customer-phone-preview">
                 <Phone size={14} />
-                <span>{form.phone || '+234 XXX XXX XXXX'}</span>
+                <span>{form.phone || '+234 803 456 7890'}</span>
               </div>
 
               <div className="customer-location-preview">
                 <MapPin size={14} />
-                <span>{form.city ? form.city + ', ' + form.country : 'City, Country'}</span>
+                <span>{form.city ? `${form.city}, ${form.country}` : 'Lagos, Nigeria'}</span>
               </div>
 
               <div className="customer-social-links">
@@ -148,74 +198,123 @@ export default function AddCustomer() {
             </div>
           </div>
 
+          {/* ── Right: Customer Information + Photo ── */}
           <div className="add-customer-right">
             <div className="add-customer-card">
               <h3 className="add-customer-card-title">Customer Information</h3>
-              
+
+              {/* Row 1: Name + Email */}
               <div className="add-customer-row">
                 <div className="add-customer-group">
                   <label className="add-customer-label">Customer Name</label>
                   <div className="input-icon-wrapper">
                     <User size={18} className="input-icon" />
-                    <input className="add-customer-input" placeholder="Enter full name" value={form.name} onChange={e => set('name', e.target.value)} />
+                    <input
+                      className="add-customer-input"
+                      placeholder="Enter full name"
+                      value={form.name}
+                      onChange={e => set('name', e.target.value)}
+                    />
                   </div>
                 </div>
                 <div className="add-customer-group">
                   <label className="add-customer-label">Customer Email</label>
                   <div className="input-icon-wrapper">
                     <Mail size={18} className="input-icon" />
-                    <input className="add-customer-input" type="email" placeholder="Enter email" value={form.email} onChange={e => set('email', e.target.value)} />
+                    <input
+                      className="add-customer-input"
+                      type="email"
+                      placeholder="Enter email"
+                      value={form.email}
+                      onChange={e => set('email', e.target.value)}
+                    />
                   </div>
                 </div>
               </div>
 
+              {/* Row 2: Phone + Products Number */}
               <div className="add-customer-row">
                 <div className="add-customer-group">
                   <label className="add-customer-label">Customer Number</label>
                   <div className="input-icon-wrapper">
-                    <Phone size={18} className="input-icon" />
-                    <input className="add-customer-input" placeholder="Enter phone number" value={form.phone} onChange={e => set('phone', e.target.value)} />
+                    {/* PhoneCall matches the arc-lines phone icon in Figma */}
+                    <PhoneCall size={18} className="input-icon" />
+                    <input
+                      className="add-customer-input"
+                      placeholder="Enter phone number"
+                      value={form.phone}
+                      onChange={e => set('phone', e.target.value)}
+                    />
                   </div>
                 </div>
                 <div className="add-customer-group">
                   <label className="add-customer-label">Products Number</label>
                   <div className="input-icon-wrapper">
-                    <Package size={18} className="input-icon" />
-                    <input className="add-customer-input" placeholder="Enter products number" value={form.productsNumber} onChange={e => set('productsNumber', e.target.value)} />
+                    {/* Building2 matches the storefront/grid icon in Figma */}
+                    <Building2 size={18} className="input-icon" />
+                    <input
+                      className="add-customer-input"
+                      placeholder="Enter Products number"
+                      value={form.productsNumber}
+                      onChange={e => set('productsNumber', e.target.value)}
+                    />
                   </div>
                 </div>
               </div>
 
+              {/* Row 3: Own Products + Invest Property */}
               <div className="add-customer-row">
                 <div className="add-customer-group">
                   <label className="add-customer-label">Own Products</label>
                   <div className="input-icon-wrapper">
-                    <Package size={18} className="input-icon" />
-                    <input className="add-customer-input" placeholder="Enter own products" value={form.ownProducts} onChange={e => set('ownProducts', e.target.value)} />
+                    <Building2 size={18} className="input-icon" />
+                    <input
+                      className="add-customer-input"
+                      placeholder="Enter own Products"
+                      value={form.ownProducts}
+                      onChange={e => set('ownProducts', e.target.value)}
+                    />
                   </div>
                 </div>
                 <div className="add-customer-group">
                   <label className="add-customer-label">Invest Property</label>
                   <div className="input-icon-wrapper">
-                    <DollarSign size={18} className="input-icon" />
-                    <input className="add-customer-input" placeholder="Enter invest price" value={form.investProperty} onChange={e => set('investProperty', e.target.value)} />
+                    {/* CircleDollarSign matches the dollar-in-circle icon in Figma */}
+                    <CircleDollarSign size={18} className="input-icon" />
+                    <input
+                      className="add-customer-input"
+                      placeholder="Enter invest price"
+                      value={form.investProperty}
+                      onChange={e => set('investProperty', e.target.value)}
+                    />
                   </div>
                 </div>
               </div>
 
+              {/* Row 4: Address + City */}
               <div className="add-customer-row">
                 <div className="add-customer-group">
                   <label className="add-customer-label">Customer Address</label>
                   <div className="input-icon-wrapper">
                     <MapPin size={18} className="input-icon" />
-                    <input className="add-customer-input" placeholder="Enter address" value={form.address} onChange={e => set('address', e.target.value)} />
+                    <input
+                      className="add-customer-input"
+                      placeholder="Enter address"
+                      value={form.address}
+                      onChange={e => set('address', e.target.value)}
+                    />
                   </div>
                 </div>
                 <div className="add-customer-group">
                   <label className="add-customer-label">City</label>
                   <div className="input-icon-wrapper">
-                    <MapPin size={18} className="input-icon" />
-                    <select className="add-customer-input add-customer-select" value={form.city} onChange={e => set('city', e.target.value)}>
+                    {/* Figma uses a person silhouette icon for City */}
+                    <User size={18} className="input-icon" />
+                    <select
+                      className="add-customer-input add-customer-select"
+                      value={form.city}
+                      onChange={e => set('city', e.target.value)}
+                    >
                       <option value="">Select city</option>
                       <option value="Lagos">Lagos</option>
                       <option value="Abuja">Abuja</option>
@@ -229,19 +328,31 @@ export default function AddCustomer() {
                 </div>
               </div>
 
+              {/* Row 5: Zip-Code + Country */}
               <div className="add-customer-row">
                 <div className="add-customer-group">
                   <label className="add-customer-label">Zip-Code</label>
                   <div className="input-icon-wrapper">
-                    <Hash size={18} className="input-icon" />
-                    <input className="add-customer-input" placeholder="Enter zip-code" value={form.zipCode} onChange={e => set('zipCode', e.target.value)} />
+                    {/* ShieldCheck matches the shield/tag icon in Figma for zip code */}
+                    <ShieldCheck size={18} className="input-icon" />
+                    <input
+                      className="add-customer-input"
+                      placeholder="Enter zip-code"
+                      value={form.zipCode}
+                      onChange={e => set('zipCode', e.target.value)}
+                    />
                   </div>
                 </div>
                 <div className="add-customer-group">
                   <label className="add-customer-label">Country</label>
                   <div className="input-icon-wrapper">
-                    <Globe size={18} className="input-icon" />
-                    <select className="add-customer-input add-customer-select" value={form.country} onChange={e => set('country', e.target.value)}>
+                    {/* Figma uses a person silhouette icon for Country too */}
+                    <User size={18} className="input-icon" />
+                    <select
+                      className="add-customer-input add-customer-select"
+                      value={form.country}
+                      onChange={e => set('country', e.target.value)}
+                    >
                       <option value="">Select country</option>
                       <option value="Nigeria">Nigeria</option>
                       <option value="Ghana">Ghana</option>
@@ -255,22 +366,39 @@ export default function AddCustomer() {
               </div>
             </div>
 
+            {/* ── Add Customer Photo ── */}
             <div className="add-customer-card">
               <h3 className="add-customer-card-title">Add Customer Photo</h3>
               <div className="customer-upload-area" onClick={() => photoInputRef.current?.click()}>
-                <div className="upload-icon-wrapper">
-                  <Upload size={40} color="#FF6B00" />
-                </div>
-                <p className="upload-text">Drop your images here, or click to <span className="upload-browse">browse</span></p>
-                <p className="upload-hint">Recommended image size: 1080 x 780 pixels. Accepted image formats: JPG, PNG.</p>
-                <input ref={photoInputRef} type="file" accept="image/*" multiple onChange={handlePhotosChange} style={{ display: 'none' }} />
+                {/* Colourful landscape illustration matching Figma */}
+                <UploadIllustration />
+                <p className="upload-text">
+                  Drop your images here, or click to{' '}
+                  <span className="upload-browse">browse</span>
+                </p>
+                {/* Single line, no period after pixels, exact Figma copy */}
+                <p className="upload-hint">
+                  Recommended image size: 1080 x 780 pixels Accepted image formats: JPG, PNG.
+                </p>
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handlePhotosChange}
+                  style={{ display: 'none' }}
+                />
               </div>
               {photos.length > 0 && (
                 <div className="upload-previews">
                   {photos.map((src, i) => (
                     <div key={i} className="upload-preview-item">
-                      <img src={src} alt={`Upload ${i+1}`} />
-                      <button type="button" className="upload-preview-remove" onClick={() => removePhoto(i)}>
+                      <img src={src} alt={`Upload ${i + 1}`} />
+                      <button
+                        type="button"
+                        className="upload-preview-remove"
+                        onClick={() => removePhoto(i)}
+                      >
                         <X size={14} />
                       </button>
                     </div>

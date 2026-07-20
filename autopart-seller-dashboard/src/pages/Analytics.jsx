@@ -25,7 +25,7 @@ function ChartFilter({ value, onChange, options }) {
           padding: '8px 12px',
           background: '#FFFFFF',
           border: '1px solid #F0F0F0',
-          boxShadow: '0px 1px 2px rgba(82,88,102,0.06)',
+          boxShadow: '0px 2px 6px rgba(0,0,0,0.04)',
           borderRadius: '6px',
           cursor: 'pointer',
           fontFamily: 'inherit',
@@ -39,7 +39,7 @@ function ChartFilter({ value, onChange, options }) {
         <div style={{
           position: 'absolute', top: 'calc(100% + 4px)', right: 0,
           background: '#fff', border: '1px solid #F0F0F0',
-          borderRadius: '6px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+          borderRadius: '6px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
           zIndex: 50, minWidth: '110px', overflow: 'hidden',
         }}>
           {options.map(o => (
@@ -67,61 +67,51 @@ function ChartFilter({ value, onChange, options }) {
 // ── Line chart tooltip — Figma floating card style ─────────────────────────
 function LineTooltip({ active, payload }) {
   if (!active || !payload?.length) return null
-  // Show Income on top, Expenses below — filter out the bg bar entry
   const filtered = payload.filter(p => p.name === 'Income' || p.name === 'Expenses')
+  // Sort: Income (higher value) on top, Expenses below — matches Figma layout
+  const sorted = [...filtered].sort((a, b) => b.value - a.value)
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', pointerEvents: 'none' }}>
-      {filtered.map(p => (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '60px', pointerEvents: 'none' }}>
+      {sorted.map(p => (
         <div
           key={p.dataKey}
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
             background: '#FFFFFF',
-            padding: '8px 12px',
-            borderRadius: '4px',
-            boxShadow: '0px 0px 16px rgba(0,0,0,0.06), 0px 14px 46px rgba(0,0,0,0.12)',
+            padding: '7px 11px',
+            borderRadius: '6px',
+            boxShadow: '0px 2px 12px rgba(0,0,0,0.10)',
             fontSize: '12px', color: '#0E0E0C', whiteSpace: 'nowrap',
           }}
         >
           <div style={{
-            width: '10px', height: '10px', borderRadius: '50%',
-            background: '#FFFFFF', boxShadow: '0px 1px 4px rgba(0,0,0,0.12)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: '8px', height: '8px', borderRadius: '50%',
+            background: p.color,
             flexShrink: 0,
-          }}>
-            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: p.color }} />
-          </div>
-          <span>{p.name}: {Math.round(p.value / 1000)}K</span>
+          }} />
+          <span style={{ fontWeight: 500 }}>{p.name}: {Math.round(p.value / 1000)}K</span>
         </div>
       ))}
     </div>
   )
 }
 
-// ── Background column bars custom shape ───────────────────────────────────
+// ── Background column bars custom shape — one tall bar per column ─────────
 function BgBars(props) {
   const { x, y, width, height } = props
-  const bw = Math.max(4, width * 0.18)
-  const gap = (width - bw * 3) / 4
-  const bars = [
-    { h: height * 0.58, x: gap },
-    { h: height * 0.26, x: gap * 2 + bw },
-    { h: height * 0.10, x: gap * 3 + bw * 2 },
-  ]
+  const bw = Math.max(6, width * 0.35)
+  const bx = (width - bw) / 2
   return (
     <g>
-      {bars.map((b, i) => (
-        <rect
-          key={i}
-          x={x + b.x}
-          y={y + height - b.h}
-          width={bw}
-          height={b.h}
-          fill="#F0F0F0"
-          opacity={0.6}
-          rx={2}
-        />
-      ))}
+      <rect
+        x={x + bx}
+        y={y}
+        width={bw}
+        height={height}
+        fill="#F0F0F0"
+        opacity={0.55}
+        rx={3}
+      />
     </g>
   )
 }
@@ -129,10 +119,23 @@ function BgBars(props) {
 function BarTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
   const total = payload.reduce((acc, p) => acc + (p.value || 0), 0)
+  // Find the full date from the data entry (we store it as `date` field)
+  const entry = payload[0]?.payload
+  const dateLabel = entry?.date || label
   return (
-    <div className="an-tooltip">
-      <div className="an-tooltip-label">{label}</div>
-      <div style={{ fontWeight: 700, color: 'var(--brand)', fontSize: '0.9rem', marginTop: 4 }}>
+    <div style={{
+      background: '#FFFFFF',
+      border: '1px solid #F0F0F0',
+      borderRadius: '8px',
+      padding: '10px 14px',
+      boxShadow: '0px 4px 16px rgba(0,0,0,0.10)',
+      minWidth: '130px',
+      pointerEvents: 'none',
+    }}>
+      <div style={{ fontSize: '11px', fontWeight: 500, color: '#7B7B7B', marginBottom: '4px' }}>
+        {dateLabel}
+      </div>
+      <div style={{ fontWeight: 700, color: '#0E0E0C', fontSize: '14px' }}>
         ₦{total.toLocaleString()}.00
       </div>
     </div>
@@ -160,6 +163,7 @@ function NigeriaMap() {
             height: '100%',
             objectFit: 'contain',
             display: 'block',
+            opacity: 0.45,
           }}
         />
 
@@ -184,15 +188,15 @@ function NigeriaMap() {
               className="an-city-tooltip"
               style={{
                 background: 'white',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                textAlign: 'center',
-                border: `2px solid ${c.color}`,
+                padding: '6px 10px',
+                borderRadius: '6px',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.12)',
+                textAlign: 'left',
+                whiteSpace: 'nowrap',
               }}
             >
-              <div style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>{c.city}</div>
-              <div style={{ fontSize: '12px', fontWeight: 700, color: c.color }}>₦{c.amount.toLocaleString()}.00</div>
+              <div style={{ fontSize: '11px', fontWeight: 500, color: '#6B7280' }}>{c.city}</div>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: '#0E0E0C' }}>₦{c.amount.toLocaleString()}.00</div>
             </div>
 
             {/* Connector Line */}
@@ -239,6 +243,7 @@ const STATUS_CLS = {
   Completed: 'badge-green',
   Cancel:    'badge-red',
   Pending:   'badge-yellow',
+  Reversal:  'badge-red',
 }
 
 export default function Analytics() {
@@ -257,6 +262,7 @@ export default function Analytics() {
           change="+15.5%"
           gradient="linear-gradient(178.98deg, #EEFBD5 -100.51%, #FFFFFF 57.23%)"
           variant="analytics"
+          changeLabel="last month"
         />
         <StatCard
           icon={Users}
@@ -266,6 +272,7 @@ export default function Analytics() {
           changeDown
           gradient="linear-gradient(178.98deg, #D3F6DE -100.51%, #FFFFFF 57.23%)"
           variant="analytics"
+          changeLabel="last month"
         />
         <StatCard
           icon={Banknote}
@@ -274,6 +281,7 @@ export default function Analytics() {
           change="+21.6%"
           gradient="linear-gradient(178.98deg, #FED7D7 -100.51%, #FFFFFF 57.23%)"
           variant="analytics"
+          changeLabel="last month"
         />
         <StatCard
           icon={TrendingUp}
@@ -283,6 +291,7 @@ export default function Analytics() {
           changeDown
           gradient="linear-gradient(178.98deg, #D2E6FE -100.51%, #FFFFFF 57.23%)"
           variant="analytics"
+          changeLabel="last month"
         />
       </div>
 
@@ -297,27 +306,27 @@ export default function Analytics() {
             />
           </div>
 
-          <ResponsiveContainer width="100%" height={252}>
-            <ComposedChart data={salesAnalyticData} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
+          <ResponsiveContainer width="100%" height={232}>
+            <ComposedChart data={salesAnalyticData} margin={{ top: 4, right: 8, left: 4, bottom: 0 }}>
               <defs>
                 <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#F5A405" stopOpacity={0.35} />
-                  <stop offset="100%" stopColor="#F5A405" stopOpacity={0.02} />
+                  <stop offset="0%" stopColor="#F5A405" stopOpacity={0.18} />
+                  <stop offset="100%" stopColor="#F5A405" stopOpacity={0.0} />
                 </linearGradient>
                 <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#B7D57B" stopOpacity={0.35} />
-                  <stop offset="100%" stopColor="#B7D57B" stopOpacity={0.02} />
+                  <stop offset="0%" stopColor="#B7D57B" stopOpacity={0.18} />
+                  <stop offset="100%" stopColor="#B7D57B" stopOpacity={0.0} />
                 </linearGradient>
               </defs>
               <XAxis
                 dataKey="month"
-                tick={{ fill: '#5F5F5F', fontSize: 11, opacity: 0.6 }}
+                tick={{ fill: '#A7A7A7', fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
-                tickMargin={8}
+                tickMargin={10}
               />
               <YAxis
-                tick={{ fill: '#5F5F5F', fontSize: 11 }}
+                tick={{ fill: '#A7A7A7', fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
                 domain={[10000, 20000]}
@@ -327,7 +336,7 @@ export default function Analytics() {
               />
               <Tooltip
                 content={<LineTooltip />}
-                cursor={{ stroke: '#0E0E0C', strokeWidth: 1, strokeDasharray: '4 4' }}
+                cursor={{ stroke: '#0E0E0C', strokeWidth: 1, strokeDasharray: '3 3', opacity: 0.3 }}
               />
               {/* Decorative background bars per month column */}
               <Bar dataKey="income" shape={<BgBars />} isAnimationActive={false} legendType="none" tooltipType="none" />
@@ -336,20 +345,20 @@ export default function Analytics() {
                 dataKey="income"
                 name="Income"
                 stroke="#F5A405"
-                strokeWidth={2}
+                strokeWidth={1.5}
                 fill="url(#incomeGrad)"
                 dot={false}
-                activeDot={{ r: 5, fill: '#F5A405', stroke: '#fff', strokeWidth: 2 }}
+                activeDot={{ r: 4, fill: '#F5A405', stroke: '#fff', strokeWidth: 2 }}
               />
               <Area
                 type="monotone"
                 dataKey="expense"
                 name="Expenses"
                 stroke="#B7D57B"
-                strokeWidth={2}
+                strokeWidth={1.5}
                 fill="url(#expenseGrad)"
                 dot={false}
-                activeDot={{ r: 5, fill: '#B7D57B', stroke: '#fff', strokeWidth: 2 }}
+                activeDot={{ r: 4, fill: '#B7D57B', stroke: '#fff', strokeWidth: 2 }}
               />
             </ComposedChart>
           </ResponsiveContainer>
@@ -372,12 +381,12 @@ export default function Analytics() {
                   data={salesSummaryData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={58}
+                  innerRadius={72}
                   outerRadius={100}
                   startAngle={90}
                   endAngle={-270}
                   dataKey="value"
-                  strokeWidth={6}
+                  strokeWidth={3}
                   stroke="#fff"
                 >
                   {salesSummaryData.map((_, i) => (
@@ -386,7 +395,7 @@ export default function Analytics() {
                 </Pie>
               </PieChart>
             </ResponsiveContainer>
-            <div className="an-donut-center">
+            <div className="an-donut-center" style={{ marginTop: '2px' }}>
               <div className="an-donut-pct">86%</div>
               <div className="an-donut-sub">Total Sales<br />Summary</div>
             </div>
@@ -396,11 +405,11 @@ export default function Analytics() {
           <div style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
-            gap: '12px 8px',
+            gap: '16px 14px',
             marginTop: '16px',
           }}>
             {salesSummaryData.map((d, i) => (
-              <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', borderRadius: '100px' }}>
+              <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 8px', borderRadius: '100px' }}>
                 <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: DONUT_COLORS[i], flexShrink: 0 }} />
                 <span style={{ fontSize: '12px', fontWeight: 400, color: '#5F5F5F' }}>{d.name}</span>
                 <span style={{ fontSize: '12px', fontWeight: 700, color: '#0E0E0C' }}>₦{d.value.toLocaleString()}</span>
@@ -434,36 +443,43 @@ export default function Analytics() {
           </div>
 
           <ResponsiveContainer width="100%" height={290}>
-            <BarChart data={totalRevenueBarData} barSize={22} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
+            <BarChart data={totalRevenueBarData} barSize={15} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
+              <defs>
+                <pattern id="blueHatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+                  <line x1="0" y1="0" x2="0" y2="6" stroke="#3B82F6" strokeWidth="3" strokeOpacity="0.7" />
+                </pattern>
+              </defs>
               <XAxis
                 dataKey="month"
-                tick={{ fill: '#9CA3AF', fontSize: 10 }}
+                tick={{ fill: '#B8B8B8', fontSize: 10 }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fill: '#9CA3AF', fontSize: 10 }}
+                tick={{ fill: '#C0C0C0', fontSize: 10 }}
                 axisLine={false}
                 tickLine={false}
-                tickFormatter={v => (v === 0 ? '0' : `${(v / 1000).toFixed(0)}K`)}
+                domain={[0, 24000]}
+                ticks={[0, 4000, 8000, 12000, 16000, 20000, 24000]}
+                tickFormatter={v => v === 0 ? '0' : String(v / 1000).padStart(2, '0')}
               />
-              <Tooltip content={<BarTooltip />} cursor={{ fill: 'rgba(0,0,0,0.03)' }} />
+              <Tooltip content={<BarTooltip />} cursor={{ fill: 'rgba(0,0,0,0.02)' }} />
 
               <Bar dataKey="a" stackId="rev" name="Sold">
                 {totalRevenueBarData.map((e, i) => (
-                  <Cell key={i} fill={e.active ? '#FF7101' : 'rgba(255,113,1,0.2)'} />
+                  <Cell key={i} fill={e.active ? '#FF7101' : 'rgba(255,113,1,0.12)'} />
                 ))}
               </Bar>
 
               <Bar dataKey="b" stackId="rev" name="Rented">
                 {totalRevenueBarData.map((e, i) => (
-                  <Cell key={i} fill={e.active ? '#F5A623' : 'rgba(245,166,35,0.2)'} />
+                  <Cell key={i} fill={e.active ? '#F5A623' : 'rgba(245,166,35,0.12)'} />
                 ))}
               </Bar>
 
               <Bar dataKey="c" stackId="rev" name="Income" radius={[4, 4, 0, 0]}>
                 {totalRevenueBarData.map((e, i) => (
-                  <Cell key={i} fill={e.active ? '#3B82F6' : 'rgba(59,130,246,0.2)'} />
+                  <Cell key={i} fill={e.active ? 'url(#blueHatch)' : 'rgba(59,130,246,0.12)'} />
                 ))}
               </Bar>
             </BarChart>
@@ -498,13 +514,13 @@ export default function Analytics() {
                     <span className="font-600 color-brand">{txn.id}</span>
                   </td>
                   <td>
-                    <div className="flex items-center gap-8">
+                    <div className="flex items-center" style={{ gap: '12px' }}>
                       <img
                         src={txn.avatar}
                         alt={txn.customerName}
                         style={{
-                          width: 30,
-                          height: 30,
+                          width: 32,
+                          height: 32,
                           borderRadius: '50%',
                           objectFit: 'cover',
                           flexShrink: 0,
@@ -514,7 +530,7 @@ export default function Analytics() {
                     </div>
                   </td>
                   <td className="font-600">₦{txn.amount.toLocaleString()}</td>
-                  <td className="color-muted">{txn.date}</td>
+                  <td className="color-muted">{txn.date.split(' ').slice(0, 3).join(' ')}</td>
                   <td>{txn.paymentMethod}</td>
                   <td>{txn.location}</td>
                   <td>
