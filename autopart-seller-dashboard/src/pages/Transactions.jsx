@@ -1,9 +1,9 @@
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { Search, Filter, FileText, ChevronLeft, ChevronRight, ArrowUpRight, ArrowDownRight, Eye, Download, MoreHorizontal, Wallet, CreditCard, TrendingDown, Plus } from 'lucide-react'
-import { transactionStats } from '../utils/mockData'
+import { fetchSales, fetchPayouts } from '../features/transactionSlice'
 import StatCard from '../components/StatCard'
 
 const splitDate = (dateStr) => {
@@ -13,7 +13,25 @@ const splitDate = (dateStr) => {
 
 export default function Transactions() {
   const navigate = useNavigate()
+  const dispatch = useDispatch()
   const transactions = useSelector(s => s.transactions.list)
+  const payouts = useSelector(s => s.transactions.payouts)
+
+  useEffect(() => {
+    dispatch(fetchSales())
+    dispatch(fetchPayouts())
+  }, [dispatch])
+
+  const naira = (kobo) => Math.round((Number(kobo) || 0) / 100)
+  const totalCredits = payouts
+    .filter(p => ['paid', 'approved'].includes(p.status))
+    .reduce((sum, p) => sum + naira(p.amountKobo), 0)
+  const totalDebits = payouts
+    .filter(p => ['paid', 'approved'].includes(p.status))
+    .reduce((sum, p) => sum + naira(p.commissionAmountKobo), 0)
+  const totalBalance = payouts
+    .filter(p => p.status !== 'rejected')
+    .reduce((sum, p) => sum + naira(p.amountKobo), 0)
   const [search, setSearch] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 8
@@ -65,8 +83,8 @@ export default function Transactions() {
         <StatCard
           icon={Wallet}
           label="Total Balance"
-          value={`₦${transactionStats.totalBalance.toLocaleString()}`}
-          change={transactionStats.totalBalanceChange}
+          value={`₦${totalBalance.toLocaleString()}`}
+          change=""
           iconColor="#10B981"
           lineColor="#10B981"
           lightColor="#10B981"
@@ -77,8 +95,8 @@ export default function Transactions() {
         <StatCard
           icon={CreditCard}
           label="Total Credits"
-          value={`+₦${transactionStats.totalCredits.toLocaleString()}`}
-          change={transactionStats.totalCreditsChange}
+          value={`+₦${totalCredits.toLocaleString()}`}
+          change=""
           iconColor="#06B6D4"
           lineColor="#06B6D4"
           lightColor="#06B6D4"
@@ -89,8 +107,8 @@ export default function Transactions() {
         <StatCard
           icon={TrendingDown}
           label="Total Debits"
-          value={`-₦${transactionStats.totalDebits.toLocaleString()}`}
-          change={transactionStats.totalDebitsChange}
+          value={`-₦${totalDebits.toLocaleString()}`}
+          change=""
           changeDown
           iconColor="#F59E0B"
           lineColor="#F59E0B"

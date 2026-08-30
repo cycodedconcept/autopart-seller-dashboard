@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import { sellerLogin, clearAuthError } from '../../features/authSlice'
 
 // Import the user's uploaded images
 import signinImg from '../../assets/signin image.png'
@@ -8,16 +10,31 @@ import autoLogo from '../../assets/auto logo.PNG'
 
 export default function Login() {
   const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const { loading, error, token, sellerProfile } = useSelector(state => state.auth)
   const [showPwd, setShowPwd] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
+  useEffect(() => {
+    if (!token) return
+    // DEV ONLY — skip the pending-verification redirect so you can reach the dashboard.
+    if (import.meta.env.DEV) { navigate('/dashboard', { replace: true }); return }
+    const status = sellerProfile?.verificationStatus
+    if (status === 'approved' || status === 'verified') {
+      navigate('/dashboard', { replace: true })
+    } else {
+      navigate('/pending-verification', { replace: true })
+    }
+  }, [token, sellerProfile, navigate])
+
+  useEffect(() => {
+    return () => { dispatch(clearAuthError()) }
+  }, [dispatch])
 
   const handleLogin = (e) => {
     e.preventDefault()
-    setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
-      navigate('/dashboard')
-    }, 800)
+    dispatch(sellerLogin({ email, password }))
   }
 
   return (
@@ -70,6 +87,8 @@ export default function Login() {
                     type="email" 
                     placeholder="Enter your email" 
                     required 
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
                     style={{ width: '100%', padding: '12px 14px 12px 40px', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '0.875rem', outline: 'none' }}
                   />
                 </div>
@@ -83,6 +102,8 @@ export default function Login() {
                     type={showPwd ? 'text' : 'password'} 
                     placeholder="Enter your password" 
                     required 
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
                     style={{ width: '100%', padding: '12px 40px 12px 40px', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '0.875rem', outline: 'none' }}
                   />
                   <button 
@@ -103,6 +124,8 @@ export default function Login() {
                 Forgot password?
               </Link>
             </div>
+
+            {error && <p style={{ color: '#EF4444', fontSize: '0.8rem', marginTop: '12px', textAlign: 'center' }}>{typeof error === 'object' ? error.message || JSON.stringify(error) : error}</p>}
 
             {/* 3. Sign In Button */}
             <button 

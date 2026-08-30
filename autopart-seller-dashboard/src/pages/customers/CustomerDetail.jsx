@@ -2,15 +2,35 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateCustomer, toggleCustomerStatus } from '../../features/customerSlice'
+import { fetchDashboard } from '../../features/dashboardSlice'
 import { ArrowLeft, Upload, Plus, X, Edit, CheckCircle, XCircle, MapPin, Mail, Phone } from 'lucide-react'
-import { initialCustomers } from '../../utils/mockData'
 
 export default function CustomerDetail() {
   const { refNumber } = useParams()
   const navigate = useNavigate()
   const dispatch = useDispatch()
 
-  const customers = useSelector(s => s.customers.list.length > 0 ? s.customers.list : initialCustomers)
+  const sliceCustomers = useSelector(s => s.customers.list)
+  const { topCustomers } = useSelector(s => s.dashboard)
+
+  useEffect(() => {
+    if (sliceCustomers.length === 0 && topCustomers.length === 0) {
+      dispatch(fetchDashboard())
+    }
+  }, [dispatch, sliceCustomers.length, topCustomers.length])
+
+  const customers = sliceCustomers.length > 0
+    ? sliceCustomers
+    : topCustomers.map(c => ({
+        refNumber: `CUST-${c.id}`,
+        name: c.name,
+        email: c.email,
+        phone: c.phone,
+        avatar: c.avatar,
+        status: 'Active',
+        address: '—',
+        city: '', state: '', zipCode: '', country: 'Nigeria',
+      }))
   const customer = customers.find(c => c.refNumber === refNumber)
 
   const [isEditing, setIsEditing] = useState(false)

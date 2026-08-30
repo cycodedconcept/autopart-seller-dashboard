@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import { Users, ShoppingBag, TrendingUp, Repeat, Search, Filter, Eye, Edit, Trash2, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
-import { initialCustomers, customerStats } from '../../utils/mockData'
+import { fetchDashboard } from '../../features/dashboardSlice'
 
 function ArrowUp() {
   return (
@@ -84,25 +85,47 @@ function StatCard({ icon: Icon, label, value, iconColor, lineColor, iconBgColor,
 
 export default function Customers() {
   const navigate = useNavigate()
-  const [customers, setCustomers] = useState(initialCustomers)
+  const dispatch = useDispatch()
+  const { overviewCardsMapped, topCustomers } = useSelector(state => state.dashboard)
+  const [customers, setCustomers] = useState([])
   const [search, setSearch] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
-  const filteredCustomers = customers.filter(customer => 
+  useEffect(() => { dispatch(fetchDashboard()) }, [dispatch])
+
+  const rows = (customers.length > 0 ? customers : topCustomers.map(c => ({
+    refNumber: `CUST-${c.id}`,
+    name: c.name,
+    email: c.email,
+    phone: c.phone,
+    avatar: c.avatar,
+    partCategory: 'Buyer',
+    lastDate: '—',
+    deliveryAddress: c.phone || '—',
+    status: 'Active',
+    totalOrders: c.totalOrders,
+    totalSpent: c.totalSpent,
+  })))
+
+  const filteredCustomers = rows.filter(customer => 
     customer.name.toLowerCase().includes(search.toLowerCase()) ||
     customer.email.toLowerCase().includes(search.toLowerCase()) ||
-    customer.partCategory.toLowerCase().includes(search.toLowerCase())
+    (customer.phone || '').toLowerCase().includes(search.toLowerCase())
   )
 
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const currentCustomers = filteredCustomers.slice(startIndex, startIndex + itemsPerPage)
 
-  const totalCustomers = customerStats.totalCustomers
-  const activeThisMonth = customerStats.activeThisMonth
-  const avgOrderValue = customerStats.avgOrderValue
-  const repeatBuyers = customerStats.repeatBuyers
+  const totalCustomers = Number(overviewCardsMapped.find(c => c.key === 'totalCustomers')?.valueNumeric) || rows.length
+  const activeThisMonth = rows.length
+  const avgOrderValue = rows.length
+    ? Math.round(rows.reduce((sum, c) => sum + (c.totalSpent || 0), 0) / rows.length)
+    : 0
+  const repeatBuyers = rows.length
+    ? Math.round((rows.filter(c => c.totalOrders > 1).length / rows.length) * 100)
+    : 0
 
   const handleDelete = (refNumber) => {
     if (confirm('Delete this customer?')) {
@@ -145,7 +168,7 @@ export default function Customers() {
         <StatCard
           icon={TrendingUp}
           label="Avg. Order Value"
-          value={avgOrderValue}
+          value={`₦${avgOrderValue.toLocaleString()}`}
           iconColor="#2DD4BF"
           lineColor="#2DD4BF"
           iconBgColor="#CCFBF1"

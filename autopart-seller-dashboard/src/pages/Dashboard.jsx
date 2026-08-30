@@ -1,14 +1,13 @@
-import { useSelector } from 'react-redux'
+import { useEffect } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
 import { Link } from 'react-router-dom'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell
 } from 'recharts'
 import {
-  Package, ShoppingBag, Users, Search, Filter, MapPin, DollarSign
+  Package, ShoppingBag, Search, Filter, MapPin
 } from 'lucide-react'
-import {
-  monthlyRevenueData, stockBreakdown, topAgents, currentUser
-} from '../utils/mockData'
+import { fetchDashboard } from '../features/dashboardSlice'
 import StatCard from '../components/StatCard'
 
 const CustomTooltip = ({ active, payload, label }) => {
@@ -25,7 +24,7 @@ const CustomTooltip = ({ active, payload, label }) => {
         border: '1px solid var(--border)'
       }}>
         <div style={{ fontWeight: 700, marginBottom: '4px' }}>₦{payload[0].value.toLocaleString()}</div>
-        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{label} 23, 2026</div>
+        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{label}</div>
       </div>
     )
   }
@@ -33,53 +32,40 @@ const CustomTooltip = ({ active, payload, label }) => {
 }
 
 export default function Dashboard() {
+  const dispatch = useDispatch()
   const products = useSelector(state => state.products.list)
+  const { overviewCardsMapped, revenueChart, productStatus, featuredProducts, topCustomers, loading } = useSelector(state => state.dashboard)
+
+  useEffect(() => {
+    dispatch(fetchDashboard())
+  }, [dispatch])
+
+  const exploreProducts = featuredProducts.length > 0 ? featuredProducts : products
+
+  const totalProducts = Number(productStatus.totalProducts) || 0
+  const inStock = Number(productStatus.inStock) || 0
+  const lowStock = Number(productStatus.lowStock) || 0
+  const outOfStock = Number(productStatus.outOfStock) || 0
 
   return (
     <div className="dashboard-container">
       {/* Stats */}
       <div className="dashboard-stats-grid">
-        <StatCard
-          icon={Package}
-          label="Products Listed"
-          value="1,324"
-          change="+12%"
-          iconColor="#FF7101"
-          lineColor="#FF7101"
-          lightColor="#FFD3B0"
-          progressWidth="47%"
-        />
-        <StatCard
-          icon={ShoppingBag}
-          label="Total Orders"
-          value="725"
-          change="+12%"
-          iconColor="#7ED321"
-          lineColor="#7ED321"
-          lightColor="#D7F1BA"
-          progressWidth="26%"
-        />
-        <StatCard
-          icon={Users}
-          label="Total Customers"
-          value="2,648"
-          change="+23%"
-          iconColor="#007AFF"
-          lineColor="#007AFF"
-          lightColor="#B0D6FF"
-          progressWidth="79%"
-        />
-        <StatCard
-          icon={DollarSign}
-          label="Total Revenue"
-          value="₦5.2M"
-          change="-03%"
-          changeDown
-          iconColor="#FFCC00"
-          lineColor="#FFCC00"
-          lightColor="#FFEFB0"
-          progressWidth="13%"
-        />
+        {overviewCardsMapped.map((card) => (
+          <StatCard
+            key={card.key}
+            icon={card.icon}
+            label={card.label}
+            value={card.value}
+            change={card.change}
+            changeDown={card.changeDown}
+            changeLabel={card.changeLabel}
+            iconColor={card.iconColor}
+            lineColor={card.lineColor}
+            lightColor={card.lightColor}
+            progressWidth={card.progressWidth}
+          />
+        ))}
       </div>
 
       {/* Main Content: 2 Column Layout */}
@@ -99,7 +85,7 @@ export default function Dashboard() {
               </div>
             </div>
             <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={monthlyRevenueData} barSize={32} barGap={8}>
+              <BarChart data={revenueChart} barSize={32} barGap={8}>
                 <XAxis 
                   dataKey="name" 
                   tick={{ fill: 'var(--text-muted)', fontSize: 11 }} 
@@ -110,11 +96,11 @@ export default function Dashboard() {
                   tick={{ fill: 'var(--text-muted)', fontSize: 10 }} 
                   axisLine={false} 
                   tickLine={false} 
-                  tickFormatter={v => `${v/1000}00K`}
+                  tickFormatter={v => v >= 1000000 ? `${(v/1000000).toFixed(1)}M` : v >= 1000 ? `${Math.round(v/1000)}K` : v}
                 />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
                 <Bar dataKey="revenue" radius={[4, 4, 0, 0]}>
-                  {monthlyRevenueData.map((entry, index) => (
+                  {revenueChart.map((entry, index) => (
                     <Cell 
                       key={index} 
                       fill={entry.active ? '#FF7101' : 'url(#stripePattern)'} 
@@ -146,7 +132,7 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="products-grid">
-              {products.slice(0, 3).map((product) => (
+              {exploreProducts.slice(0, 3).map((product) => (
                 <Link 
                   key={product.id} 
                   to={`/products/${product.id}`} 
@@ -207,23 +193,28 @@ export default function Dashboard() {
 
             {/* Colorful Bars */}
             <div className="colorful-bars">
-              {[...Array(20)].map((_, i) => (
-                <div 
-                  key={i} 
-                  className={`colorful-bar bar-${i < 5 ? 'orange' : i < 10 ? 'light-orange' : i < 15 ? 'yellow' : 'green'}`}
-                />
-              ))}
+              {Array.from({ length: 20 }, (_, i) => {
+                let cls = 'colorful-bar bar-orange'
+                if (totalProducts > 0) {
+                  const inStockBars = Math.round((inStock / Math.max(totalProducts, inStock + lowStock + outOfStock)) * 20)
+                  const lowStockBars = Math.round((lowStock / Math.max(totalProducts, inStock + lowStock + outOfStock)) * 20)
+                  if (i < lowStockBars) cls = 'colorful-bar bar-yellow'
+                  else if (i < lowStockBars + inStockBars) cls = 'colorful-bar bar-green'
+                  else cls = 'colorful-bar bar-light-orange'
+                }
+                return <div key={i} className={cls} />
+              })}
             </div>
 
-            <div className="products-count">780</div>
+            <div className="products-count">{totalProducts.toLocaleString()}</div>
             <div className="products-label">Total Products</div>
 
             {/* Stock Status */}
             <div className="stock-status">
               {[
-                { label: 'In Stock', value: 520, color: '#32CD32' },
-                { label: 'Low Stock', value: 180, color: '#FFD700' },
-                { label: 'Out of Stock', value: 80, color: '#FF6B00' }
+                { label: 'In Stock', value: inStock, color: '#32CD32' },
+                { label: 'Low Stock', value: lowStock, color: '#FFD700' },
+                { label: 'Out of Stock', value: outOfStock, color: '#FF6B00' }
               ].map(item => (
                 <div key={item.label} className="stock-item">
                   <div className="stock-item-left">
@@ -243,7 +234,7 @@ export default function Dashboard() {
               <div className="agent-details">Details</div>
             </div>
             <div className="agents-list">
-              {topAgents.map(agent => (
+              {topCustomers.map(agent => (
                 <div key={agent.id} className="agent-item">
                   <img 
                     src={agent.avatar} 

@@ -1,59 +1,62 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { updateProduct } from '../../features/productSlice'
+import { updateProductThunk, fetchProducts } from '../../features/productSlice'
+import { CATEGORY_NAMES, CATEGORY_IDS } from '../../config/categories'
+import { VEHICLE_LABELS, vehicleFromLabel } from '../../config/vehicles'
 import {
   Save, X, Upload, Plus, ChevronRight,
   Tag, Package, DollarSign, Hash, MapPin,
   Award, Wrench, Star, Bookmark, CheckCircle,
 } from 'lucide-react'
-import { initialProducts } from '../../utils/mockData'
 
-const categories = ['Brakes', 'Filters', 'Electrical', 'Ignition', 'Suspension', 'Engine', 'Body', 'Transmission']
-const conditions = ['New', 'Used', 'Refurbished']
+const conditions = ['New', 'Used', 'OEM']
 
 export default function EditProduct() {
   const { id } = useParams()
   const navigate = useNavigate()
   const dispatch = useDispatch()
 
-  const products = useSelector(s =>
-    s.products.list.length > 0 ? s.products.list : initialProducts
-  )
+  const { list: products, loading, error } = useSelector(s => s.products)
   const product = products.find(p => p.id === id)
+
+  useEffect(() => {
+    if (products.length === 0) dispatch(fetchProducts())
+  }, [dispatch, products.length])
 
   const [form, setForm] = useState({
     name: '',
     price: '',
-    category: 'Brakes',
+    category: 'Engine Components',
     condition: 'New',
     brand: '',
     sku: '',
     units: '',
     location: '',
-    compatibility: 'Universal',
     description: '',
     image: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&q=80&w=400',
     images: [],
-    vehicles: [''],
+    vehicles: [VEHICLE_LABELS[0]],
   })
 
   useEffect(() => {
     if (product) {
+      const urls = product.images || [product.image]
       setForm({
         name: product.name || '',
         price: product.price?.toString() || '',
-        category: product.category || 'Brakes',
+        category: CATEGORY_NAMES.includes(product.category) ? product.category : 'Engine Components',
         condition: product.condition || 'New',
         brand: product.brand || '',
         sku: product.sku || '',
         units: product.units?.toString() || '',
         location: product.location || '',
-        compatibility: product.compatibility || 'Universal',
         description: product.description || '',
         image: product.image,
-        images: product.images || [product.image],
-        vehicles: product.vehicles?.length ? product.vehicles : [''],
+        images: urls.map(url => ({ url, file: null })),
+        vehicles: (product.vehicles || []).filter(v => VEHICLE_LABELS.includes(v)).length
+          ? product.vehicles.filter(v => VEHICLE_LABELS.includes(v))
+          : [VEHICLE_LABELS[0]],
       })
     }
   }, [product])
@@ -71,33 +74,50 @@ export default function EditProduct() {
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files || [])
-    const urls = files.map(f => URL.createObjectURL(f))
-    set('images', [...form.images, ...urls])
+    const newImages = files.map(f => ({ url: URL.createObjectURL(f), file: f }))
+    set('images', [...form.images, ...newImages])
   }
 
   const removeImage = (index) =>
     set('images', form.images.filter((_, i) => i !== index))
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    dispatch(updateProduct({
-      id,
-      ...form,
-      price: parseFloat(form.price),
-      units: parseInt(form.units),
-      vehicles: form.vehicles.filter(Boolean),
-      status:
-        parseInt(form.units) > 20 ? 'In Stock'
-        : parseInt(form.units) > 0 ? 'Low Stock'
-        : 'Out of Stock',
-    }))
-    navigate(`/products/${id}`)
+    const fd = new FormData()
+    fd.append('title', form.name)
+    fd.append('description', form.description || 'Premium quality auto part')
+    fd.append('categoryId', String(CATEGORY_IDS[form.category]))
+    fd.append('partNumber', form.sku || product?.sku || `PART-${Date.now()}`)
+    fd.append('condition', form.condition.toLowerCase())
+    fd.append('priceKobo', String(Math.round((parseFloat(form.price) || 0) * 100)))
+    fd.append('stockQty', form.units || '0')
+    fd.append('location', form.location || 'Lagos')
+    const compatibility = form.vehicles
+      .map(vehicleFromLabel)
+      .filter(Boolean)
+    if (compatibility.length > 0) {
+      fd.append('compatibility', JSON.stringify(compatibility))
+    }
+    form.images.forEach((img) => {
+      if (img.file) fd.append('photos', img.file)
+    })
+    const result = await dispatch(updateProductThunk({ id, formData: fd }))
+    if (result.meta.requestStatus === 'fulfilled') navigate(`/products/${id}`)
   }
 
-  if (!product) return null
+  if (!product && !loading) {
+    return (
+      <div className="add-product-page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: '16px' }}>
+        <h2>Product not found</h2>
+        <button className="product-header-action-btn add-cancel-btn" onClick={() => navigate('/products')}>
+          <X size={16} /> Back to Products
+        </button>
+      </div>
+    )
+  }
 
   const previewImage =
-    form.images.length > 0 ? form.images[0] : form.image
+    form.images.length > 0 ? form.images[0].url : form.image
 
   return (
     <div className="add-product-page">
@@ -120,9 +140,10 @@ export default function EditProduct() {
               type="submit"
               form="edit-product-form"
               className="product-header-action-btn add-save-btn"
+              disabled={loading}
             >
               <Save size={16} />
-              Save Changes
+              {loading ? 'Saving...' : 'Save Changes'}
             </button>
             <button
               type="button"
@@ -136,7 +157,14 @@ export default function EditProduct() {
         </div>
       </div>
 
+      {error && (
+        <div className="error-banner">{error}</div>
+      )}
+
       {/* ── Main form grid ── */}
+      {loading && products.length === 0 ? (
+        <div className="loading-spinner-container"><div className="loading-spinner" /></div>
+      ) : (
       <form id="edit-product-form" onSubmit={handleSubmit} className="add-product-grid">
 
         {/* ── Left — live preview card ── */}
@@ -218,7 +246,7 @@ export default function EditProduct() {
                   value={form.category}
                   onChange={e => set('category', e.target.value)}
                 >
-                  {categories.map(c => <option key={c}>{c}</option>)}
+                  {CATEGORY_NAMES.map(c => <option key={c}>{c}</option>)}
                 </select>
               </div>
             </div>
@@ -312,33 +340,6 @@ export default function EditProduct() {
               </div>
             </div>
 
-            {/* Compatibility — full width */}
-            <div className="add-form-group" style={{ gridColumn: '1 / -1' }}>
-              <label className="add-form-label">Compatibility</label>
-              <div className="add-input-wrapper">
-                <Wrench size={16} className="add-input-icon" />
-                <input
-                  className="add-form-input"
-                  placeholder="e.g. Universal or Toyota Camry 2018-2024"
-                  value={form.compatibility}
-                  onChange={e => set('compatibility', e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Description — full width */}
-            <div className="add-form-group" style={{ gridColumn: '1 / -1' }}>
-              <label className="add-form-label">Product Description</label>
-              <textarea
-                className="add-form-input"
-                rows={4}
-                placeholder="Describe the product, its features, quality..."
-                value={form.description}
-                onChange={e => set('description', e.target.value)}
-                style={{ height: 'auto', paddingTop: '12px', paddingBottom: '12px', paddingLeft: '16px', resize: 'vertical' }}
-              />
-            </div>
-
             {/* Vehicle Compatibility — full width */}
             <div className="add-form-group" style={{ gridColumn: '1 / -1' }}>
               <label className="add-form-label">Vehicle Compatibility</label>
@@ -347,12 +348,14 @@ export default function EditProduct() {
                   <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <div className="add-input-wrapper" style={{ flex: 1 }}>
                       <Wrench size={16} className="add-input-icon" />
-                      <input
+                      <select
                         className="add-form-input"
-                        placeholder="e.g. Toyota Camry 2018-2024"
+                        required
                         value={vehicle}
                         onChange={e => handleVehicle(i, e.target.value)}
-                      />
+                      >
+                        {VEHICLE_LABELS.map(v => <option key={v}>{v}</option>)}
+                      </select>
                     </div>
                     {form.vehicles.length > 1 && (
                       <button
@@ -372,7 +375,7 @@ export default function EditProduct() {
                 ))}
                 <button
                   type="button"
-                  onClick={() => set('vehicles', [...form.vehicles, ''])}
+                  onClick={() => set('vehicles', [...form.vehicles, VEHICLE_LABELS[0]])}
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: '6px',
                     padding: '8px 14px', borderRadius: '8px',
@@ -417,7 +420,7 @@ export default function EditProduct() {
             <div className="add-upload-previews">
               {form.images.map((img, i) => (
                 <div key={i} className="add-upload-preview-item">
-                  <img src={img} alt="" />
+                  <img src={img.url} alt="" />
                   <button
                     type="button"
                     className="add-upload-remove"
@@ -432,6 +435,7 @@ export default function EditProduct() {
         </div>
 
       </form>
+      )}
     </div>
   )
 }

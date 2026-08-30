@@ -11,5 +11,18 @@ export default defineConfig({
     hmr: {
       port: 5174,
     },
+    proxy: {
+      '/api/v1': {
+        target: 'https://autoparts.zubitechnologies.com',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api': {
+        target: 'https://autoparts.zubitechnologies.com/api/v1',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+        secure: false,
+      }
+    }
   },
 })

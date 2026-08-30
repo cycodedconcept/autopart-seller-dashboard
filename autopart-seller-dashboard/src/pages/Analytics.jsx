@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   LineChart, Line, Area, AreaChart, ComposedChart, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   PieChart, Pie, Cell,
@@ -8,10 +8,9 @@ import {
   Building2, Users, Banknote, TrendingUp, ChevronDown, Calendar,
   Eye, Pencil, Trash2,
 } from 'lucide-react'
+import { useDispatch, useSelector } from 'react-redux'
 import StatCard from '../components/StatCard'
-import {
-  salesAnalyticData, salesSummaryData, totalRevenueBarData, latestTransactions,
-} from '../utils/mockData'
+import { fetchDashboard } from '../features/dashboardSlice'
 
 // ── Figma-style filter button ──────────────────────────────────────────────
 function ChartFilter({ value, onChange, options }) {
@@ -247,10 +246,61 @@ const STATUS_CLS = {
 }
 
 export default function Analytics() {
+  const dispatch = useDispatch()
   const [analyticFilter, setAnalyticFilter] = useState('Monthly')
   const [summaryFilter, setSummaryFilter] = useState('Monthly')
   const [mapFilter, setMapFilter] = useState('Nigeria')
   const [revFilter, setRevFilter] = useState('Monthly')
+
+  useEffect(() => { dispatch(fetchDashboard()) }, [dispatch])
+
+  const { overviewCardsMapped, revenueChart, orders } = useSelector(state => state.dashboard)
+
+  const salesAnalyticData = revenueChart.map(p => ({
+    month: p.name || '',
+    income: Math.round(p.gross || 0),
+    expense: Math.round(p.commission || 0),
+    active: p.active,
+  }))
+
+  const netTotal = revenueChart.reduce((sum, p) => sum + (p.revenue || 0), 0)
+  const grossTotal = revenueChart.reduce((sum, p) => sum + (p.gross || 0), 0)
+  const commissionTotal = revenueChart.reduce((sum, p) => sum + (p.commission || 0), 0)
+
+  const salesSummaryData = [
+    { name: 'Net Sales', value: Math.round(netTotal) },
+    { name: 'Commission', value: Math.round(commissionTotal) },
+  ].filter(d => d.value > 0)
+  const donutPct = grossTotal > 0 ? Math.round((netTotal / grossTotal) * 100) : 0
+
+  const totalRevenueBarData = revenueChart.map(p => ({
+    month: p.name || '',
+    a: Math.round(p.gross || 0),
+    b: 0,
+    c: 0,
+    active: p.active,
+  }))
+
+  const latestTransactions = (Array.isArray(orders) ? orders : [])
+    .flatMap(o => (o.items || []).map(item => ({
+      id: `ORD-${String(item.id).padStart(6, '0')}`,
+      customerName: o.deliveryAddress?.name || 'Customer',
+      avatar: 'https://picsum.photos/80/80?random=300',
+      amount: Math.round(item.lineTotalKobo / 100),
+      date: new Date(item.createdAt).toLocaleString(),
+      paymentMethod: o.paymentMethod || 'N/A',
+      location: item.location || '—',
+      status: item.itemStatus === 'ready_for_pickup' || item.itemStatus === 'delivered'
+        ? 'Completed'
+        : item.itemStatus === 'cancelled' ? 'Cancel' : 'Pending',
+    })))
+    .slice(0, 8)
+
+  const cardValue = (key) => overviewCardsMapped.find(c => c.key === key)
+  const productsCard = cardValue('productsListed')
+  const ordersCard = cardValue('totalOrders')
+  const customersCard = cardValue('totalCustomers')
+  const revenueCard = cardValue('totalRevenue')
 
   return (
     <div className="analytics-page">
@@ -258,18 +308,19 @@ export default function Analytics() {
         <StatCard
           icon={Building2}
           label="No. of Products"
-          value="5,536"
-          change="+15.5%"
+          value={productsCard?.value || '0'}
+          change={productsCard?.change || '0%'}
+          changeDown={productsCard?.changeDown}
           gradient="linear-gradient(178.98deg, #EEFBD5 -100.51%, #FFFFFF 57.23%)"
           variant="analytics"
           changeLabel="last month"
         />
         <StatCard
           icon={Users}
-          label="Regi. Agents"
-          value="746"
-          change="-02.8%"
-          changeDown
+          label="Total Customers"
+          value={customersCard?.value || '0'}
+          change={customersCard?.change || '0%'}
+          changeDown={customersCard?.changeDown}
           gradient="linear-gradient(178.98deg, #D3F6DE -100.51%, #FFFFFF 57.23%)"
           variant="analytics"
           changeLabel="last month"
@@ -277,18 +328,19 @@ export default function Analytics() {
         <StatCard
           icon={Banknote}
           label="Total Revenue"
-          value="₦2,748"
-          change="+21.6%"
+          value={revenueCard?.value || '₦0'}
+          change={revenueCard?.change || '0%'}
+          changeDown={revenueCard?.changeDown}
           gradient="linear-gradient(178.98deg, #FED7D7 -100.51%, #FFFFFF 57.23%)"
           variant="analytics"
           changeLabel="last month"
         />
         <StatCard
           icon={TrendingUp}
-          label="Target This Month"
-          value="435"
-          change="-09.4%"
-          changeDown
+          label="Total Orders"
+          value={ordersCard?.value || '0'}
+          change={ordersCard?.change || '0%'}
+          changeDown={ordersCard?.changeDown}
           gradient="linear-gradient(178.98deg, #D2E6FE -100.51%, #FFFFFF 57.23%)"
           variant="analytics"
           changeLabel="last month"
@@ -329,9 +381,7 @@ export default function Analytics() {
                 tick={{ fill: '#A7A7A7', fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
-                domain={[10000, 20000]}
-                ticks={[10000, 12000, 14000, 16000, 18000, 20000]}
-                tickFormatter={v => `${v / 1000}K`}
+                tickFormatter={v => `${Math.round(v / 1000)}K`}
                 width={32}
               />
               <Tooltip
@@ -396,8 +446,8 @@ export default function Analytics() {
               </PieChart>
             </ResponsiveContainer>
             <div className="an-donut-center" style={{ marginTop: '2px' }}>
-              <div className="an-donut-pct">86%</div>
-              <div className="an-donut-sub">Total Sales<br />Summary</div>
+              <div className="an-donut-pct">{donutPct}%</div>
+              <div className="an-donut-sub">Net of Gross<br />Sales</div>
             </div>
           </div>
 
@@ -459,9 +509,7 @@ export default function Analytics() {
                 tick={{ fill: '#C0C0C0', fontSize: 10 }}
                 axisLine={false}
                 tickLine={false}
-                domain={[0, 24000]}
-                ticks={[0, 4000, 8000, 12000, 16000, 20000, 24000]}
-                tickFormatter={v => v === 0 ? '0' : String(v / 1000).padStart(2, '0')}
+                tickFormatter={v => `${Math.round(v / 1000)}K`}
               />
               <Tooltip content={<BarTooltip />} cursor={{ fill: 'rgba(0,0,0,0.02)' }} />
 

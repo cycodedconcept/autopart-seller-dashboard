@@ -2,17 +2,19 @@
 import { useState } from 'react'
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
-  Home, Box, ShoppingCart, BarChart3,
+  Home, Box, ShoppingCart, BarChart3, Boxes,
   ArrowUpDown, Inbox, Settings, HelpCircle, Menu,
   ChevronDown, Search, Calendar, Filter, Sun,
-  PanelLeftClose, Bell
+  PanelLeftClose, Bell, LogOut
 } from 'lucide-react'
-import { currentUser } from '../utils/mockData'
+import { useSelector, useDispatch } from 'react-redux'
+import { logout } from '../features/authSlice'
 import autoLogo from '../assets/Logo.png'
 
 const menuItems = [
   { icon: Home, label: 'Dashboard', to: '/dashboard' },
   { icon: Box, label: 'Products', to: '/products' },
+  { icon: Boxes, label: 'Inventory', to: '/inventory' },
   { icon: ShoppingCart, label: 'Orders', to: '/orders' },
   { icon: BarChart3, label: 'Analytics', to: '/analytics' },
   { icon: ArrowUpDown, label: 'Transactions', to: '/transactions' },
@@ -33,6 +35,11 @@ const bottomNavItems = [
 
 function Sidebar({ open, onClose }) {
   const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const user = useSelector(state => state.auth.user)
+  const displayName = user?.fullName || user?.name || 'Kamal Okelola'
+  const displayEmail = user?.email || 'scholar@gmail.com'
+  const displayAvatar = user?.avatar || 'https://picsum.photos/200/200?random=100'
   return (
     <>
       {open && <div className="sidebar-overlay open" onClick={onClose} />}
@@ -96,15 +103,29 @@ function Sidebar({ open, onClose }) {
           {/* User Profile */}
           <div className="sidebar-user-profile">
             <div className="user-profile-avatar-wrapper">
-              <img src={currentUser.avatar} alt={currentUser.name} className="user-profile-avatar" />
+              <img src={displayAvatar} alt={displayName} className="user-profile-avatar" />
               <div className="user-profile-status"></div>
             </div>
             <div className="user-profile-info">
-              <div className="user-profile-name">{currentUser.name}</div>
-              <div className="user-profile-email">{currentUser.email}</div>
+              <div className="user-profile-name">{displayName}</div>
+              <div className="user-profile-email">{displayEmail}</div>
             </div>
             <ChevronDown size={16} className="user-profile-chevron" />
           </div>
+          <button
+            onClick={() => { dispatch(logout()); navigate('/login') }}
+            style={{
+              width: '100%', padding: '10px 16px', marginTop: '8px',
+              background: 'none', border: '1px solid #E5E7EB', borderRadius: '8px',
+              fontSize: '0.85rem', color: '#EF4444', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: '8px',
+              transition: 'background 0.15s'
+            }}
+            onMouseEnter={e => e.target.style.background = '#FEF2F2'}
+            onMouseLeave={e => e.target.style.background = 'none'}
+          >
+            <LogOut size={16} /> Logout
+          </button>
         </div>
       </aside>
     </>
@@ -115,6 +136,9 @@ export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
+  const user = useSelector(state => state.auth.user)
+  const displayName = user?.fullName || user?.name || 'Kamal Okelola'
+  const displayAvatar = user?.avatar || 'https://picsum.photos/200/200?random=100'
 
   return (
     <div className="app-shell">
@@ -128,7 +152,7 @@ export default function Layout() {
             </button>
             <div className="greeting">
               <Sun size={20} style={{ color: '#FFA500' }} />
-              <span className="greeting-text">Good Morning, Kamal Okelola!</span>
+              <span className="greeting-text">Good Morning, {displayName}!</span>
             </div>
           </div>
           <div className="topbar-right">
@@ -147,7 +171,7 @@ export default function Layout() {
               <Bell size={20} />
             </button>
             <div className="topbar-user">
-              <img src={currentUser.avatar} alt={currentUser.name} className="topbar-user-avatar" />
+              <img src={displayAvatar} alt={displayName} className="topbar-user-avatar" />
               <ChevronDown size={16} className="topbar-user-chevron" />
             </div>
           </div>
