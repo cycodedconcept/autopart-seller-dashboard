@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { Link } from 'react-router-dom'
 import { Package, Plus, Grid, List, Search, Star, Filter, ChevronLeft, ChevronRight, X, Edit, Trash2, Eye, SlidersHorizontal } from 'lucide-react'
-import { deleteProduct } from '../../features/productSlice'
+import { deleteProductThunk, fetchProducts } from '../../features/productSlice'
+import { CATEGORY_NAMES } from '../../config/categories'
 
 function ArrowUp() {
   return (
@@ -167,7 +168,7 @@ function ProductRowItem({ product, onDelete }) {
 
 export default function Products() {
   const dispatch = useDispatch()
-  const products = useSelector(s => s.products.list.length > 0 ? s.products.list : [])
+  const { list: products, loading, error } = useSelector(s => s.products)
   
   const [view, setView] = useState('list')
   const [search, setSearch] = useState('')
@@ -183,9 +184,17 @@ export default function Products() {
     location: 'All'
   })
   const [currentPage, setCurrentPage] = useState(1)
+
+  useEffect(() => {
+    dispatch(fetchProducts())
+  }, [dispatch])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, filterCategory, filters])
   const itemsPerPage = 8
 
-  const categories = ['All', 'Brakes', 'Engine', 'Electrical', 'Suspension', 'Cooling', 'Fuel System', 'Lighting', 'Transmission', 'Exhaust', 'Body Parts', 'Tyres & Wheels']
+  const categories = ['All', ...CATEGORY_NAMES]
   const locations = ['All', 'Ikeja, Lagos', 'Abuja, FCT', 'Port Harcourt, Rivers', 'Lekki, Lagos']
   const conditions = ['All', 'New', 'Used', 'OEM']
 
@@ -193,6 +202,7 @@ export default function Products() {
   const inStock = products.filter(p => p.status === 'In Stock').length
   const lowStock = products.filter(p => p.status === 'Low Stock').length
   const outOfStock = products.filter(p => p.status === 'Out of Stock').length
+  const pct = (n) => (totalProducts ? Math.round((n / totalProducts) * 100) : 0)
 
   const filtered = products.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.sku.toLowerCase().includes(search.toLowerCase())
@@ -201,14 +211,24 @@ export default function Products() {
     const matchPrice = (!filters.priceMin || p.price >= Number(filters.priceMin)) && (!filters.priceMax || p.price <= Number(filters.priceMax))
     const matchCondition = filters.condition === 'All' || p.condition === filters.condition
     const matchLocation = filters.location === 'All' || p.location === filters.location
-    return matchSearch && matchCategory && matchAdvancedCat && matchPrice && matchCondition && matchLocation
+    const matchYear = (() => {
+      if (!filters.yearMin && !filters.yearMax) return true
+      const m = (p.year || '').match(/(\d{4})\s*-\s*(\d{4})/)
+      if (!m) return true
+      const from = Number(m[1])
+      const to = Number(m[2])
+      const min = filters.yearMin ? Number(filters.yearMin) : -Infinity
+      const max = filters.yearMax ? Number(filters.yearMax) : Infinity
+      return to >= min && from <= max
+    })()
+    return matchSearch && matchCategory && matchAdvancedCat && matchPrice && matchCondition && matchLocation && matchYear
   })
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage)
   const paginatedProducts = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
   const handleDelete = (id) => {
-    if (window.confirm('Delete this product?')) dispatch(deleteProduct(id))
+    if (window.confirm('Delete this product?')) dispatch(deleteProductThunk(id))
   }
 
   const clearFilters = () => {
@@ -243,44 +263,52 @@ export default function Products() {
         <StatCard
           icon={Package}
           label="Total Products"
-          value="4,647"
+          value={totalProducts.toLocaleString()}
           iconColor="#FF7101"
           lineColor="#FF7101"
           lightColor="#FFD3B0"
           iconBgColor="#FFF5EB"
-          progressWidth="54.6%"
+          progressWidth="100%"
         />
         <StatCard
           icon={Package}
           label="In Stock"
-          value="2,536"
+          value={inStock.toLocaleString()}
           iconColor="#7ED321"
           lineColor="#7ED321"
           lightColor="#D7F1BA"
           iconBgColor="#F2FCE4"
-          progressWidth="54.6%"
+          progressWidth={`${pct(inStock)}%`}
         />
         <StatCard
           icon={Package}
           label="Low Stock"
-          value="737"
+          value={lowStock.toLocaleString()}
           iconColor="#FFCC00"
           lineColor="#FFCC00"
           lightColor="#FFEFB0"
           iconBgColor="#FFF9E6"
-          progressWidth="15.9%"
+          progressWidth={`${pct(lowStock)}%`}
         />
         <StatCard
           icon={Package}
           label="Out of Stock"
-          value="213"
+          value={outOfStock.toLocaleString()}
           iconColor="#FF3B30"
           lineColor="#FF3B30"
           lightColor="#FFC2BF"
           iconBgColor="#FFEBEB"
-          progressWidth="4.6%"
+          progressWidth={`${pct(outOfStock)}%`}
         />
       </div>
+
+      {error && (
+        <div className="error-banner">{error}</div>
+      )}
+
+      {loading && products.length === 0 && (
+        <div className="loading-spinner-container"><div className="loading-spinner" /></div>
+      )}
 
       {/* Main Content Layout */}
       <div className={`products-main-layout ${showFilter ? 'filter-open' : ''}`}>

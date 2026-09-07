@@ -1,6 +1,12 @@
 import React, { useState } from 'react'
 import { Upload, Check, X, Bell, Shield, Globe, User, Lock, Trash2 } from 'lucide-react'
-import { currentUser } from '../utils/mockData'
+
+const currentUser = {
+  email: 'you@autoparts.local',
+  phone: '0800 000 0000',
+  address: 'Lagos, Nigeria',
+  avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=80',
+}
 
 const AccountSettings = () => {
   const [activeTab, setActiveTab] = useState('account')

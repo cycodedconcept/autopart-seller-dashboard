@@ -11,8 +11,8 @@ export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   
-  const products = useSelector(s => s.products.list.length > 0 ? s.products.list : [])
-  const product = products.find(p => p.id === id) || products[0]
+  const { list: products, loading, error } = useSelector(s => s.products)
+  const product = products.find(p => p.id === id)
   
   const fallbackImages = [
     product?.image || 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?auto=format&fit=crop&q=80&w=800',
@@ -51,24 +51,35 @@ export default function ProductDetail() {
     }
   ]
 
+  if (loading && products.length === 0) {
+    return (
+      <div className="product-detail-page">
+        <div className="loading-spinner-container"><div className="loading-spinner" /></div>
+      </div>
+    )
+  }
+
+  if (error && products.length === 0) {
+    return (
+      <div className="product-detail-page">
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: '16px' }}>
+          <h2>Error loading product</h2>
+          <p style={{ color: '#EF4444' }}>{error}</p>
+          <button className="product-back-btn" onClick={() => navigate('/products')}>
+            <ArrowLeft size={18} /> Back to Products
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   if (!product) {
     return (
       <div className="product-detail-page">
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          height: '60vh',
-          gap: '16px'
-        }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: '16px' }}>
           <h2>Product not found</h2>
-          <button 
-            className="product-back-btn" 
-            onClick={() => navigate('/products')}
-          >
-            <ArrowLeft size={18} />
-            Back to Products
+          <button className="product-back-btn" onClick={() => navigate('/products')}>
+            <ArrowLeft size={18} /> Back to Products
           </button>
         </div>
       </div>

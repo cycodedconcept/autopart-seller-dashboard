@@ -1,66 +1,72 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { useDispatch } from 'react-redux'
-import { addProduct } from '../../features/productSlice'
+import { useDispatch, useSelector } from 'react-redux'
+import { createProduct } from '../../features/productSlice'
+import { CATEGORY_NAMES, CATEGORY_IDS } from '../../config/categories'
+import { VEHICLE_LABELS, vehicleFromLabel } from '../../config/vehicles'
 import {
   Upload, X, ChevronRight, MapPin, Star, Bookmark, Tag,
-  DollarSign, Package, Calendar, Truck, Award, Wrench,
-  CheckCircle, Hash, Weight, Barcode, Globe, Save
+  DollarSign, Package, Award, Wrench,
+  CheckCircle, Hash, Save
 } from 'lucide-react'
-
-const categories = ['Brakes', 'Filters', 'Electrical', 'Ignition', 'Suspension', 'Engine', 'Body', 'Transmission']
 
 export default function AddProduct() {
   const navigate = useNavigate()
   const dispatch = useDispatch()
 
+  const loading = useSelector(s => s.products.loading)
+  const error = useSelector(s => s.products.error)
+
   const [form, setForm] = useState({
     name: '',
-    category: 'Brakes',
+    category: 'Engine Components',
     price: '',
-    partType: '',
-    year: '',
-    model: '',
     brand: '',
-    engineType: '',
     condition: 'New',
-    partNumber: '',
-    stockQuantity: '',
-    weight: '',
-    fitment: '',
-    warehouseLocation: '',
-    barcode: '',
-    country: '',
+    sku: '',
+    units: '',
+    location: '',
     images: [],
+    description: '',
+    vehicle: VEHICLE_LABELS[0],
   })
 
   const set = (key, value) => setForm(f => ({ ...f, [key]: value }))
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    dispatch(addProduct({
-      ...form,
-      id: `prod-${Date.now()}`,
-      price: parseFloat(form.price) || 0,
-      units: parseInt(form.stockQuantity) || 0,
-      status: parseInt(form.stockQuantity) > 20 ? 'In Stock' : parseInt(form.stockQuantity) > 0 ? 'Low Stock' : 'Out of Stock',
-    }))
-    navigate('/products')
+    const fd = new FormData()
+    fd.append('title', form.name)
+    fd.append('description', form.description || 'Premium quality auto part')
+    fd.append('categoryId', String(CATEGORY_IDS[form.category]))
+    fd.append('partNumber', form.sku || `PART-${Date.now()}`)
+    fd.append('condition', form.condition.toLowerCase())
+    fd.append('priceKobo', String(Math.round((parseFloat(form.price) || 0) * 100)))
+    fd.append('stockQty', form.units || '0')
+    fd.append('location', form.location || 'Lagos')
+    const compat = vehicleFromLabel(form.vehicle)
+    if (compat) {
+      fd.append('compatibility', JSON.stringify([compat]))
+    }
+    form.images.forEach((img) => {
+      if (img.file) fd.append('photos', img.file)
+    })
+    const result = await dispatch(createProduct(fd))
+    if (result.meta.requestStatus === 'fulfilled') navigate('/products')
   }
 
   const previewImage = form.images.length > 0
-    ? form.images[0]
+    ? form.images[0].url
     : 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?auto=format&fit=crop&q=80&w=600'
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files || [])
-    const newImages = files.map(f => URL.createObjectURL(f))
+    const newImages = files.map(f => ({ url: URL.createObjectURL(f), file: f }))
     set('images', [...form.images, ...newImages])
   }
 
-  const removeImage = (index) => {
+  const removeImage = (index) =>
     set('images', form.images.filter((_, i) => i !== index))
-  }
 
   return (
     <div className="add-product-page">
@@ -78,9 +84,9 @@ export default function AddProduct() {
             </div>
           </div>
           <div className="product-header-actions add-header-actions">
-            <button type="submit" form="add-product-form" className="product-header-action-btn add-save-btn">
+            <button type="submit" form="add-product-form" className="product-header-action-btn add-save-btn" disabled={loading}>
               <Save size={16} />
-              Save
+              {loading ? 'Saving...' : 'Save'}
             </button>
             <button className="product-header-action-btn add-cancel-btn" onClick={() => navigate('/products')}>
               <X size={16} />
@@ -89,6 +95,12 @@ export default function AddProduct() {
           </div>
         </div>
       </div>
+
+      {error && (
+        <div className="error-banner">
+          {error}
+        </div>
+      )}
 
       {/* Main Grid */}
       <form id="add-product-form" onSubmit={handleSubmit} className="add-product-grid">
@@ -150,7 +162,7 @@ export default function AddProduct() {
               <div className="add-input-wrapper">
                 <Package size={16} className="add-input-icon" />
                 <select className="add-form-input" value={form.category} onChange={e => set('category', e.target.value)}>
-                  {categories.map(cat => <option key={cat}>{cat}</option>)}
+                  {CATEGORY_NAMES.map(cat => <option key={cat}>{cat}</option>)}
                 </select>
               </div>
             </div>
@@ -162,38 +174,19 @@ export default function AddProduct() {
               </div>
             </div>
             <div className="add-form-group">
-              <label className="add-form-label">Part Type</label>
+              <label className="add-form-label">Vehicle Compatibility</label>
               <div className="add-input-wrapper">
-                <Package size={16} className="add-input-icon" />
-                <input className="add-form-input" placeholder="Enter part type" value={form.partType} onChange={e => set('partType', e.target.value)} />
-              </div>
-            </div>
-            <div className="add-form-group">
-              <label className="add-form-label">Year</label>
-              <div className="add-input-wrapper">
-                <Calendar size={16} className="add-input-icon" />
-                <input className="add-form-input" placeholder="Enter year" value={form.year} onChange={e => set('year', e.target.value)} />
-              </div>
-            </div>
-            <div className="add-form-group">
-              <label className="add-form-label">Model</label>
-              <div className="add-input-wrapper">
-                <Truck size={16} className="add-input-icon" />
-                <input className="add-form-input" placeholder="Enter model" value={form.model} onChange={e => set('model', e.target.value)} />
+                <Wrench size={16} className="add-input-icon" />
+                <select className="add-form-input" required value={form.vehicle} onChange={e => set('vehicle', e.target.value)}>
+                  {VEHICLE_LABELS.map(v => <option key={v}>{v}</option>)}
+                </select>
               </div>
             </div>
             <div className="add-form-group">
               <label className="add-form-label">Brand</label>
               <div className="add-input-wrapper">
                 <Award size={16} className="add-input-icon" />
-                <input className="add-form-input" placeholder="Enter brand name" value={form.brand} onChange={e => set('brand', e.target.value)} />
-              </div>
-            </div>
-            <div className="add-form-group">
-              <label className="add-form-label">Engine Type</label>
-              <div className="add-input-wrapper">
-                <Wrench size={16} className="add-input-icon" />
-                <input className="add-form-input" placeholder="Enter engine type" value={form.engineType} onChange={e => set('engineType', e.target.value)} />
+                <input className="add-form-input" placeholder="e.g. Bosch" value={form.brand} onChange={e => set('brand', e.target.value)} />
               </div>
             </div>
 
@@ -205,57 +198,29 @@ export default function AddProduct() {
                 <select className="add-form-input" value={form.condition} onChange={e => set('condition', e.target.value)}>
                   <option>New</option>
                   <option>Used</option>
-                  <option>Refurbished</option>
+                  <option>OEM</option>
                 </select>
               </div>
             </div>
             <div className="add-form-group add-field-mobile">
-              <label className="add-form-label">Part Number</label>
+              <label className="add-form-label">SKU</label>
               <div className="add-input-wrapper">
                 <Hash size={16} className="add-input-icon" />
-                <input className="add-form-input" placeholder="Enter part number" value={form.partNumber} onChange={e => set('partNumber', e.target.value)} />
+                <input className="add-form-input" placeholder="e.g. BP-OEM-9082" value={form.sku} onChange={e => set('sku', e.target.value)} />
               </div>
             </div>
             <div className="add-form-group add-field-mobile">
-              <label className="add-form-label">Stock Quantity</label>
+              <label className="add-form-label">Units in Stock</label>
               <div className="add-input-wrapper">
                 <Package size={16} className="add-input-icon" />
-                <input className="add-form-input" type="number" placeholder="Enter quantity" value={form.stockQuantity} onChange={e => set('stockQuantity', e.target.value)} />
+                <input className="add-form-input" type="number" placeholder="0" value={form.units} onChange={e => set('units', e.target.value)} />
               </div>
             </div>
             <div className="add-form-group add-field-mobile">
-              <label className="add-form-label">Weight</label>
-              <div className="add-input-wrapper">
-                <Weight size={16} className="add-input-icon" />
-                <input className="add-form-input" placeholder="Enter weight" value={form.weight} onChange={e => set('weight', e.target.value)} />
-              </div>
-            </div>
-            <div className="add-form-group add-field-mobile">
-              <label className="add-form-label">Fitment / Compatibility</label>
-              <div className="add-input-wrapper">
-                <Wrench size={16} className="add-input-icon" />
-                <input className="add-form-input" placeholder="Enter fitment" value={form.fitment} onChange={e => set('fitment', e.target.value)} />
-              </div>
-            </div>
-            <div className="add-form-group add-field-mobile">
-              <label className="add-form-label">Warehouse Location</label>
+              <label className="add-form-label">Location</label>
               <div className="add-input-wrapper">
                 <MapPin size={16} className="add-input-icon" />
-                <input className="add-form-input" placeholder="Enter location" value={form.warehouseLocation} onChange={e => set('warehouseLocation', e.target.value)} />
-              </div>
-            </div>
-            <div className="add-form-group add-field-mobile">
-              <label className="add-form-label">Barcode / UPC</label>
-              <div className="add-input-wrapper">
-                <Barcode size={16} className="add-input-icon" />
-                <input className="add-form-input" placeholder="Enter barcode" value={form.barcode} onChange={e => set('barcode', e.target.value)} />
-              </div>
-            </div>
-            <div className="add-form-group add-field-mobile">
-              <label className="add-form-label">Country</label>
-              <div className="add-input-wrapper">
-                <Globe size={16} className="add-input-icon" />
-                <input className="add-form-input" placeholder="Enter country" value={form.country} onChange={e => set('country', e.target.value)} />
+                <input className="add-form-input" placeholder="e.g. Ikeja, Lagos" value={form.location} onChange={e => set('location', e.target.value)} />
               </div>
             </div>
           </div>
@@ -286,7 +251,7 @@ export default function AddProduct() {
             <div className="add-upload-previews">
               {form.images.map((img, i) => (
                 <div key={i} className="add-upload-preview-item">
-                  <img src={img} alt="" />
+                  <img src={img.url} alt="" />
                   <button type="button" className="add-upload-remove" onClick={() => removeImage(i)}>
                     <X size={14} />
                   </button>

@@ -1,8 +1,14 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
-import { updateOrderStatus } from '../../features/orderSlice'
+import { updateOrderStatusThunk } from '../../features/orderSlice'
 import { ArrowLeft, Printer, ChevronDown, Check, Clock, Package, Truck, CreditCard, MapPin, Phone, X } from 'lucide-react'
+
+const API_STATUS_ACTIONS = [
+  { label: 'Mark as Ready for Pickup', value: 'ready_for_pickup', target: 'Shipped' },
+  { label: 'Cancel Order', value: 'cancelled', target: 'Cancelled' },
+]
+const ACTION_TARGET = Object.fromEntries(API_STATUS_ACTIONS.map(a => [a.value, a.target]))
 
 export default function OrderDetail() {
   const { id } = useParams()
@@ -20,11 +26,9 @@ export default function OrderDetail() {
     )
   }
 
-  const handleStatusChange = (newStatus) => {
-    if (window.confirm(`Update order status to ${newStatus}?`)) {
-      dispatch(updateOrderStatus({ orderId: order.id, status: newStatus }))
-    }
+  const handleStatusChange = (itemStatus) => {
     setShowStatusDropdown(false)
+    dispatch(updateOrderStatusThunk({ orderId: String(order.id).replace('ORD-', ''), itemStatus }))
   }
 
   const getStatusBadgeClass = (s) => {
@@ -140,17 +144,17 @@ export default function OrderDetail() {
               </button>
               {showStatusDropdown && (
                 <div className="status-dropdown-menu">
-                  {['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].map((s) => (
+                  {API_STATUS_ACTIONS.map(({ label, value }) => (
                     <button
-                      key={s}
-                      className={`status-dropdown-item ${order.status === s ? 'active' : ''}`}
-                      onClick={() => handleStatusChange(s)}
+                      key={value}
+                      className={`status-dropdown-item ${order.status === ACTION_TARGET[value] ? 'active' : ''}`}
+                      onClick={() => handleStatusChange(value)}
                     >
-                      {order.status === s
+                      {order.status === ACTION_TARGET[value]
                         ? <Check size={16} style={{ color: 'var(--brand)' }} />
                         : <span style={{ width: 16, display: 'inline-block' }} />
                       }
-                      <span>Mark as {s}</span>
+                      <span>{label}</span>
                     </button>
                   ))}
                 </div>
@@ -509,45 +513,9 @@ export default function OrderDetail() {
             <div style={{ fontSize: '14px', fontWeight: 700, color: '#0E0E0C' }}>Quick Actions</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
 
-              {/* Mark as Pending */}
+              {/* Mark as Ready for Pickup */}
               <button
-                onClick={() => order.status !== 'Pending' && handleStatusChange('Pending')}
-                disabled={order.status === 'Pending'}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '6px',
-                  padding: '8px 12px', borderRadius: '8px',
-                  border: '0.8px solid #F0F0F0', background: 'transparent',
-                  fontSize: '12px', fontWeight: 500, color: '#5F5F5F',
-                  cursor: order.status === 'Pending' ? 'not-allowed' : 'pointer',
-                  opacity: order.status === 'Pending' ? 0.5 : 1,
-                  fontFamily: 'inherit',
-                }}
-              >
-                <Clock size={14} color="#5F5F5F" />
-                Mark as Pending
-              </button>
-
-              {/* Mark as Processing */}
-              <button
-                onClick={() => order.status !== 'Processing' && handleStatusChange('Processing')}
-                disabled={order.status === 'Processing'}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '6px',
-                  padding: '8px 12px', borderRadius: '8px',
-                  border: '0.8px solid #F0F0F0', background: 'transparent',
-                  fontSize: '12px', fontWeight: 500, color: '#F5A405',
-                  cursor: order.status === 'Processing' ? 'not-allowed' : 'pointer',
-                  opacity: order.status === 'Processing' ? 0.5 : 1,
-                  fontFamily: 'inherit',
-                }}
-              >
-                <Package size={14} color="#F5A405" />
-                Mark as Processing
-              </button>
-
-              {/* Mark as Shipped */}
-              <button
-                onClick={() => order.status !== 'Shipped' && handleStatusChange('Shipped')}
+                onClick={() => order.status !== 'Shipped' && handleStatusChange('ready_for_pickup')}
                 disabled={order.status === 'Shipped'}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '6px',
@@ -560,20 +528,20 @@ export default function OrderDetail() {
                 }}
               >
                 <Truck size={14} color="#3B82F6" />
-                Mark as Shipped
+                Mark as Ready for Pickup
               </button>
 
               {/* Cancel Order */}
               <button
-                onClick={() => !['Cancelled','Delivered'].includes(order.status) && handleStatusChange('Cancelled')}
+                onClick={() => !['Cancelled', 'Delivered'].includes(order.status) && handleStatusChange('cancelled')}
                 disabled={['Cancelled', 'Delivered'].includes(order.status)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '6px',
                   padding: '8px 12px', borderRadius: '8px',
                   border: '0.8px solid #FFEBEB', background: '#FFEBEB',
                   fontSize: '12px', fontWeight: 500, color: '#FB3636',
-                  cursor: ['Cancelled','Delivered'].includes(order.status) ? 'not-allowed' : 'pointer',
-                  opacity: ['Cancelled','Delivered'].includes(order.status) ? 0.5 : 1,
+                  cursor: ['Cancelled', 'Delivered'].includes(order.status) ? 'not-allowed' : 'pointer',
+                  opacity: ['Cancelled', 'Delivered'].includes(order.status) ? 0.5 : 1,
                   fontFamily: 'inherit',
                 }}
               >

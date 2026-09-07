@@ -1,11 +1,14 @@
-import { useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useState, useEffect } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
 import { Link } from 'react-router-dom'
 import { ShoppingBag, Box, Clock, AlertCircle, Search, Filter, ChevronLeft, ChevronRight, Download, Eye, Edit, Trash2, ArrowUp, ArrowDown } from 'lucide-react'
-import { orderStats } from '../../utils/mockData'
+import { fetchOrders } from '../../features/orderSlice'
 
 export default function Orders() {
+  const dispatch = useDispatch()
   const orders = useSelector(s => s.orders.list)
+
+  useEffect(() => { dispatch(fetchOrders()) }, [dispatch])
   const [search, setSearch] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 8
@@ -66,13 +69,9 @@ export default function Orders() {
               <ShoppingBag size={24} color="#3B82F6" />
             </div>
           </div>
-          <div style={{ color: '#0E0E0C', fontSize: '32px', fontWeight: 700, lineHeight: '42px' }}>{orderStats.totalOrders.toLocaleString()}</div>
+          <div style={{ color: '#0E0E0C', fontSize: '32px', fontWeight: 700, lineHeight: '42px' }}>{orders.length.toLocaleString()}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ padding: '4px 6px', borderRadius: '4px', background: '#E9FAEE', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <ArrowUp size={12} color="#24D059" />
-              <span style={{ fontSize: '12px', color: '#24D059', fontWeight: 500 }}>{orderStats.totalChange}</span>
-            </div>
-            <span style={{ fontSize: '14px', color: '#5F5F5F', fontWeight: 400 }}>Since last week</span>
+            <span style={{ fontSize: '14px', color: '#5F5F5F', fontWeight: 400 }}>Total orders</span>
           </div>
         </div>
         <div className="card dashboard-stat-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', position: 'relative', paddingLeft: '34px', border: '1px solid #F0F0F0', borderRadius: '8px' }}>
@@ -83,30 +82,22 @@ export default function Orders() {
               <Box size={24} color="#22C55E" />
             </div>
           </div>
-          <div style={{ color: '#0E0E0C', fontSize: '32px', fontWeight: 700, lineHeight: '42px' }}>{orderStats.partsShipped.toLocaleString()}</div>
+          <div style={{ color: '#0E0E0C', fontSize: '32px', fontWeight: 700, lineHeight: '42px' }}>{orders.filter(o => o.status === 'Delivered' || o.status === 'Shipped').length.toLocaleString()}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ padding: '4px 6px', borderRadius: '4px', background: '#E9FAEE', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <ArrowUp size={12} color="#24D059" />
-              <span style={{ fontSize: '12px', color: '#24D059', fontWeight: 500 }}>{orderStats.partsShippedChange}</span>
-            </div>
-            <span style={{ fontSize: '14px', color: '#5F5F5F', fontWeight: 400 }}>Since last week</span>
+            <span style={{ fontSize: '14px', color: '#5F5F5F', fontWeight: 400 }}>Delivered/shipped</span>
           </div>
         </div>
         <div className="card dashboard-stat-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', position: 'relative', paddingLeft: '34px', border: '1px solid #F0F0F0', borderRadius: '8px' }}>
           <div style={{ position: 'absolute', left: '16px', top: '16px', width: '6px', height: '70px', background: '#F59E0B', borderRadius: '20px' }} />
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '16px', color: '#5F5F5F', fontWeight: 500, lineHeight: '20px' }}>Backordered</span>
+            <span style={{ fontSize: '16px', color: '#5F5F5F', fontWeight: 500, lineHeight: '20px' }}>Processing</span>
             <div style={{ padding: '8px', background: 'rgba(245,158,11,0.1)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Clock size={24} color="#F59E0B" />
             </div>
           </div>
-          <div style={{ color: '#0E0E0C', fontSize: '32px', fontWeight: 700, lineHeight: '42px' }}>{orderStats.backordered.toLocaleString()}</div>
+          <div style={{ color: '#0E0E0C', fontSize: '32px', fontWeight: 700, lineHeight: '42px' }}>{orders.filter(o => o.status === 'Processing').length.toLocaleString()}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ padding: '4px 6px', borderRadius: '4px', background: '#FFEBEB', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <ArrowDown size={12} color="#FB3636" />
-              <span style={{ fontSize: '12px', color: '#FB3636', fontWeight: 500 }}>{orderStats.backorderedChange}</span>
-            </div>
-            <span style={{ fontSize: '14px', color: '#5F5F5F', fontWeight: 400 }}>Since last week</span>
+            <span style={{ fontSize: '14px', color: '#5F5F5F', fontWeight: 400 }}>In progress</span>
           </div>
         </div>
         <div className="card dashboard-stat-card" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', position: 'relative', paddingLeft: '34px', border: '1px solid #F0F0F0', borderRadius: '8px' }}>
@@ -117,13 +108,9 @@ export default function Orders() {
               <AlertCircle size={24} color="#EF4444" />
             </div>
           </div>
-          <div style={{ color: '#0E0E0C', fontSize: '32px', fontWeight: 700, lineHeight: '42px' }}>{orderStats.pendingOrders.toLocaleString()}</div>
+          <div style={{ color: '#0E0E0C', fontSize: '32px', fontWeight: 700, lineHeight: '42px' }}>{orders.filter(o => o.status === 'Pending').length.toLocaleString()}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ padding: '4px 6px', borderRadius: '4px', background: '#E9FAEE', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <ArrowUp size={12} color="#24D059" />
-              <span style={{ fontSize: '12px', color: '#24D059', fontWeight: 500 }}>{orderStats.pendingChange}</span>
-            </div>
-            <span style={{ fontSize: '14px', color: '#5F5F5F', fontWeight: 400 }}>Since last week</span>
+            <span style={{ fontSize: '14px', color: '#5F5F5F', fontWeight: 400 }}>Awaiting action</span>
           </div>
         </div>
       </div>
