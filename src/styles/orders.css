@@ -1,0 +1,42 @@
+.seller-orders .catalog-header { align-items: flex-start; }
+.seller-orders .catalog-header p { margin: 8px 0 0; }
+.seller-orders .seller-order-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
+.seller-orders .seller-order-stats .catalog-stat { border-top: 3px solid #efb482; }
+.seller-orders .seller-order-stats .catalog-stat small { font-size: 12px; color: #667085; line-height: 1.5; }
+.seller-orders .order-toolbar { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin: 24px 0; flex-wrap: wrap; }
+.seller-orders .order-toolbar .catalog-field { min-width: 180px; }
+.seller-orders .order-search { flex: 1; max-width: 360px; }
+.seller-orders .order-item-badge { display: inline-flex; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; white-space: nowrap; text-transform: capitalize; }
+.seller-orders .order-table td { vertical-align: middle; }
+.seller-orders .order-table td small { display: block; color: #667085; margin-top: 5px; line-height: 1.5; }
+.seller-orders .order-table .order-parent { background: #fafbfc; }
+.seller-orders .order-parent td { padding: 12px 16px; }
+.seller-orders .order-parent-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+.seller-orders .order-parent-summary > a { font-weight: 650; color: #9c3c00; }
+.seller-orders .order-parent-summary > span { font-size: 13px; color: #475467; }
+.seller-orders .order-product { display: flex; align-items: center; gap: 12px; min-width: 225px; }
+.seller-orders .order-product strong { font-size: 14px; }
+.seller-orders .order-back { display: inline-flex; align-items: center; gap: 6px; color: #9c3c00; margin-bottom: 20px; font-size: 14px; text-decoration: none; }
+.seller-orders .order-detail-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+.seller-orders .order-detail-grid > * { min-width: 0; }
+.seller-orders .order-detail-grid .catalog-panel { padding: 22px; }
+.seller-orders .order-item-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+.seller-orders .order-item-heading .catalog-image { width: 76px; height: 76px; }
+.seller-orders .order-item-heading h2 { font-size: 18px; margin: 0 0 8px; }
+.seller-orders .order-item-heading p { font-size: 13px; margin: 0; }
+.seller-orders .order-item-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding: 16px 0; border-top: 1px solid #eaecf0; border-bottom: 1px solid #eaecf0; margin: 0 0 20px; }
+.seller-orders .order-item-facts dt { font-size: 12px; color: #667085; margin-bottom: 8px; }
+.seller-orders .order-item-facts dd { margin: 0; font-size: 16px; font-weight: 600; }
+.seller-orders .order-item-actions .catalog-actions { flex-wrap: wrap; }
+.seller-orders .order-item-actions p { font-size: 14px; margin: 0; }
+.seller-orders .order-item-actions .catalog-error, .seller-orders .order-item-actions .catalog-success { font-size: 14px; }
+.seller-orders .order-detail-grid aside h2 { font-size: 17px; }
+.seller-orders .order-detail-grid aside p { overflow-wrap: anywhere; font-size: 14px; }
+.seller-orders .order-facts { display: flex; flex-direction: column; gap: 14px; margin: 0; }
+.seller-orders .order-facts > div { display: flex; justify-content: space-between; align-items: start; gap: 16px; font-size: 14px; }
+.seller-orders .order-facts dt { color: #667085; }
+.seller-orders .order-facts dd { margin: 0; text-align: right; overflow-wrap: anywhere; text-transform: capitalize; }
+.seller-orders .order-updated { margin-top: 18px; color: #667085; font-size: 12px; }
+@media (max-width: 1050px) { .seller-orders .order-detail-grid { grid-template-columns: minmax(0, 1fr); } .seller-orders .order-detail-grid aside { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; } }
+@media (max-width: 650px) { .seller-orders .seller-order-stats { grid-template-columns: 1fr 1fr; gap: 10px; } .seller-orders .seller-order-stats .catalog-stat { padding: 14px; } .seller-orders .seller-order-stats strong { font-size: 26px; } .seller-orders .catalog-header { flex-wrap: wrap; } .seller-orders .order-detail-grid aside { display: block; } .seller-orders .order-item-heading { flex-wrap: wrap; } .seller-orders .order-item-heading .order-product { min-width: 0; } .seller-orders .order-item-actions .catalog-button { white-space: normal; } .seller-orders .order-item-facts dd { font-size: 14px; } }
+@media print { .seller-orders .order-back, .seller-orders .order-print, .seller-orders .order-item-actions { display: none; } .seller-orders .order-detail-grid { display: block; } .seller-orders .catalog-panel { break-inside: avoid; } }

@@ -1,0 +1,55 @@
+.seller-disputes .catalog-header { align-items: flex-start; }
+.seller-disputes .catalog-header p { margin: 8px 0 0; }
+.seller-disputes .catalog-header a, .seller-disputes .catalog-table a:not(.catalog-button) { color: #9c3c00; font-weight: 600; }
+.seller-disputes .dispute-toolbar { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin: 0 0 24px; padding: 18px; background: white; border: 1px solid #e4e7ec; border-radius: 10px; }
+.seller-disputes .dispute-toolbar .catalog-field { width: 190px; }
+.seller-disputes .dispute-table td { vertical-align: middle; }
+.seller-disputes .dispute-description { display: flex; flex-direction: column; gap: 6px; min-width: 250px; max-width: 420px; }
+.seller-disputes .dispute-description span { color: #475467; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.45; }
+.seller-disputes .dispute-status { display: inline-flex; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 650; white-space: nowrap; }
+.seller-disputes .dispute-back { display: inline-flex; align-items: center; gap: 6px; color: #9c3c00; margin-bottom: 20px; font-size: 14px; text-decoration: none; }
+.seller-disputes .dispute-detail-header .dispute-status { margin-top: 4px; }
+.seller-disputes .dispute-detail-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+.seller-disputes .dispute-detail-grid > * { min-width: 0; }
+.seller-disputes .dispute-reason { display: inline-block; margin: 4px 0 14px; padding: 5px 9px; color: #9c3c00; background: #fff4e8; border-radius: 6px; font-size: 13px; font-weight: 650; }
+.seller-disputes .dispute-evidence-group + .dispute-evidence-group { padding-top: 20px; border-top: 1px solid #eaecf0; }
+.seller-disputes .dispute-evidence-group h3 { font-size: 15px; margin: 16px 0 10px; }
+.seller-disputes .dispute-evidence-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
+.seller-disputes .dispute-evidence-item { min-width: 0; }
+.seller-disputes .dispute-evidence-preview { height: 130px; overflow: hidden; border-radius: 9px; background: #f2f4f7; border: 1px solid #eaecf0; position: relative; }
+.seller-disputes .dispute-evidence-preview a, .seller-disputes .dispute-evidence-preview img { width: 100%; height: 100%; display: block; }
+.seller-disputes .dispute-evidence-preview img { object-fit: cover; }
+.seller-disputes .dispute-evidence-loading { position: absolute; inset: 0; background: linear-gradient(90deg,#eef0f3,#fafbfc,#eef0f3); background-size: 200% 100%; animation: catalog-shimmer 1.4s infinite; }
+.seller-disputes .dispute-evidence-failed { height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; color: #667085; padding: 12px; text-align: center; font-size: 12px; }
+.seller-disputes .dispute-evidence-item > div:last-child { margin-top: 8px; min-width: 0; }
+.seller-disputes .dispute-evidence-item strong, .seller-disputes .dispute-evidence-item small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.seller-disputes .dispute-evidence-item strong { font-size: 13px; }
+.seller-disputes .dispute-evidence-item small { color: #667085; font-size: 11px; margin-top: 4px; }
+.seller-disputes .dispute-response textarea { resize: vertical; }
+.seller-disputes .dispute-file-picker { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; margin: 16px 0; border: 1px solid #d0d5dd; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.seller-disputes .dispute-file-picker input { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
+.seller-disputes .dispute-new-files { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.seller-disputes .dispute-new-file { position: relative; min-width: 0; }
+.seller-disputes .dispute-new-file .catalog-image { width: 100%; height: 100px; }
+.seller-disputes .dispute-new-file > span { display: block; margin-top: 6px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.seller-disputes .dispute-new-file button { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; display: grid; place-items: center; color: #b42318; background: white; border: 1px solid #f4b4ac; border-radius: 50%; cursor: pointer; }
+.seller-disputes .dispute-response-closed { background: #f9fafb; }
+.seller-disputes .dispute-sla { display: flex; gap: 12px; border-left: 4px solid #efb482; }
+.seller-disputes .dispute-sla.breached { border-left-color: #d92d20; }
+.seller-disputes .dispute-sla h2 { font-size: 15px; margin-bottom: 8px; }
+.seller-disputes .dispute-sla p { font-size: 12px; margin: 6px 0 0; }
+.seller-disputes .dispute-facts { display: flex; flex-direction: column; gap: 13px; margin: 18px 0 0; }
+.seller-disputes .dispute-facts > div { display: flex; justify-content: space-between; gap: 14px; font-size: 13px; }
+.seller-disputes .dispute-facts dt { color: #667085; }
+.seller-disputes .dispute-facts dd { margin: 0; text-align: right; text-transform: capitalize; }
+.seller-disputes .dispute-timeline { list-style: none; padding: 0; margin: 20px 0 0; }
+.seller-disputes .dispute-timeline li { display: grid; grid-template-columns: 12px 1fr; gap: 10px; position: relative; padding-bottom: 24px; }
+.seller-disputes .dispute-timeline li:not(:last-child)::before { content: ''; position: absolute; left: 5px; top: 12px; bottom: 0; width: 1px; background: #d0d5dd; }
+.seller-disputes .dispute-timeline-dot { width: 11px; height: 11px; margin-top: 3px; border-radius: 50%; background: #bc4c00; z-index: 1; }
+.seller-disputes .dispute-timeline strong, .seller-disputes .dispute-timeline small { display: block; }
+.seller-disputes .dispute-timeline strong { font-size: 13px; text-transform: capitalize; }
+.seller-disputes .dispute-timeline small { color: #667085; margin-top: 4px; font-size: 11px; line-height: 1.5; }
+.seller-disputes .dispute-timeline p { color: #475467; font-size: 13px; line-height: 1.55; margin: 8px 0 0; overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: reduce) { .seller-disputes .dispute-evidence-loading { animation: none; } }
+@media (max-width: 1050px) { .seller-disputes .dispute-detail-grid { grid-template-columns: 1fr; } }
+@media (max-width: 650px) { .seller-disputes .dispute-toolbar .catalog-field { width: 100%; } .seller-disputes .dispute-detail-header { flex-wrap: wrap; } }
